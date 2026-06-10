@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Discogs artist releases on YouTube",
+  "version": "1.0.0",
+  "description": "Adds a side panel on YouTube to browse any artist's Discogs releases and play them on YouTube with one click.",
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": [
+        "src/config.js",
+        "src/roving.js",
+        "src/paging.js",
+        "src/release-row.js",
+        "src/typeahead.js",
+        "src/filters.js",
+        "src/subfilters.js",
+        "src/releases.js",
+        "src/other-artists.js",
+        "src/panel.js"
+      ],
+      "css": [
+        "css/layout.css",
+        "css/panel.css",
+        "css/releases.css",
+        "css/yt-results-focus.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["src/inject-search.js", "src/inject-focus.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    }
+  ]
+}

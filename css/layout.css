@@ -1,0 +1,40 @@
+/* Lay the page out as two in-flow columns: YouTube on the left, panel on the right. */
+body {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  margin: 0 !important;
+}
+
+/* YouTube's app takes the remaining width.
+   position:relative forces it to stay an in-flow flex item (if it were fixed/absolute it
+   would escape the flex row and the panel would paint over it), while still anchoring
+   YouTube's own absolutely-positioned children. */
+ytd-app {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* YouTube's masthead (top bar) is position:fixed across the whole viewport, so it ignores
+   the column layout — pull its right edge in by 400px so it doesn't slide under the panel. */
+ytd-app #masthead-container,
+#masthead-container {
+  left: 0 !important;
+  right: 400px !important;
+  width: auto !important;
+}
+
+/* Hide the panel in full-screen mode (the player covers the viewport, so the
+   side column must get out of the way). Keyed off the Fullscreen API rather than
+   YouTube's own markup, so it survives YouTube redesigns: `:fullscreen #panel`
+   covers the panel being inside the full-screen element (html/body), and
+   `html:has(:fullscreen)` covers the full-screen element being elsewhere in the
+   page (the player or ytd-app). */
+:fullscreen #yt-search-panel-ext,
+html:has(:fullscreen) #yt-search-panel-ext {
+  display: none !important;
+}
