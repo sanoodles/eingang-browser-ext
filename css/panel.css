@@ -27,7 +27,10 @@
   color: var(--yt-panel-text);
   border-left: 1px solid var(--yt-panel-border);
   box-shadow: -2px 0 12px var(--yt-panel-shadow);
-  z-index: 2147483647;
+  /* One below the 32-bit ceiling: sits above all of YouTube's normal chrome, but
+     leaves the very top slot for YouTube's own popups (masthead menus, dialogs),
+     which layout.css lifts to 2147483647 so they open over the panel. */
+  z-index: 2147483646;
   display: flex;
   flex-direction: column;
   gap: 12px;

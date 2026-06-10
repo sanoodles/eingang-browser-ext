@@ -28,6 +28,17 @@ ytd-app #masthead-container,
   width: auto !important;
 }
 
+/* YouTube opens its masthead menus (account, notifications, the "⋮" menus) and
+   dialogs in a position:fixed overlay that it stacks at z-index ~2200 — far below
+   the panel — so they paint *under* the panel wherever their box overlaps the
+   right column. Lift those overlays to the 32-bit ceiling (one above the panel,
+   which sits at 2147483646) so they always open on top. !important overrides the
+   inline z-index YouTube's overlay manager writes on each open. */
+tp-yt-iron-dropdown,
+tp-yt-paper-dialog {
+  z-index: 2147483647 !important;
+}
+
 /* Hide the panel in full-screen mode (the player covers the viewport, so the
    side column must get out of the way). Keyed off the Fullscreen API rather than
    YouTube's own markup, so it survives YouTube redesigns: `:fullscreen #panel`
