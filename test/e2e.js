@@ -2,7 +2,7 @@
 //   typeahead search → artist select → release list (default Releases filter)
 //   → text filter (narrow by title, then clear) → category filter (Credits)
 //   → role sub-filter (Remixes) → feedback link present
-//   → activate a release (drives YouTube's own search).
+//   → activate a release (drives YouTube's search + fills "Other artists").
 //
 // It launches its own headless Chrome with the unpacked extension and tears it
 // down. It hits live YouTube + the Discogs API, so it needs network and is
@@ -65,6 +65,9 @@ const panelState = `(() => {
       (r.querySelector('.yt-rel-meta') || {}).textContent || ''),
     titles: rows.map(r => (r.querySelector('.yt-rel-title') || {}).textContent || ''),
     filterValue: (q('.yt-rel-filter-input') || {}).value || '',
+    otherHeading: (q('.yt-search-panel-subheading') || {}).textContent || null,
+    otherRows: document.querySelectorAll('.yt-other').length,
+    otherEmpty: (q('.yt-other-empty') || {}).textContent || null,
   };
 })()`;
 
@@ -239,10 +242,20 @@ async function run(page) {
   check("feedback mailto link present",
     /^mailto:samuelgomezcrespo@gmail\.com/.test(feedbackHref), "href=" + feedbackHref);
 
-  // 8. Activating a release drives YouTube's own search box. The query uses the
-  // release's own credited artist, not the searched one, and drops a bare
-  // "Various" — so assert a non-empty query that isn't "Various …".
+  // 8. Activating a release drives YouTube's own search box AND fills the
+  // "Other artists" section. The section is populated synchronously on click, so
+  // capture the panel before asserting the async navigation.
   await page.locator(".yt-rel").first().click();
+  await sleep(800);
+  const after = await page.evaluate(panelState);
+  check("activating a release fills the Other artists heading",
+    /^Other artists on /.test(after.otherHeading || ""), "heading=" + after.otherHeading);
+  check("Other artists section resolves",
+    after.otherRows > 0 || /no other artists/i.test(after.otherEmpty || ""),
+    "rows=" + after.otherRows + " empty=" + JSON.stringify(after.otherEmpty));
+
+  // The query uses the release's own credited artist, not the searched one, and
+  // drops a bare "Various" — so assert a non-empty query that isn't "Various …".
   const searched = await waitOk(() =>
     page.waitForFunction(
       `!!new URLSearchParams(location.search).get('search_query')`, { timeout: 15000 }));
