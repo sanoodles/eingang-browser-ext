@@ -1,8 +1,10 @@
-# Discogs artist releases on YouTube
+# Eingang: Discogs releases for YouTube
 
 A Chrome extension that adds a full-height side panel to YouTube. Type an artist
 into the panel's [Discogs](https://www.discogs.com) typeahead, browse their
 releases (newest first), and click one to run an in-page YouTube search for it.
+
+*Unofficial — not affiliated with, endorsed by, or sponsored by YouTube or Discogs.*
 
 ## What it does
 
@@ -47,3 +49,4 @@ result; a compilation's `Various` is dropped, leaving just the title.
 - **Discogs API, no token.** Requests are unauthenticated — works, but rate-limited
   (~25/minute) and without thumbnails. Heavy use may briefly hit the limit.
 - **Permissions.** Runs only on `*.youtube.com`; fetches from `api.discogs.com`.
+- **Privacy.** No data is collected or sent to the developer. See [PRIVACY.md](PRIVACY.md).
