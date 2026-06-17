@@ -1,0 +1,53 @@
+// Text filter for the loaded releases list: a client-side, case-insensitive
+// substring match on release titles — no network. It narrows what releases.js
+// renders from its cache; releases.js calls test()/query(), and typing here just
+// asks releases to rebuild the visible list. Owns its input element's events.
+(function () {
+  "use strict";
+  const YTSP = (window.YTSP = window.YTSP || {});
+
+  YTSP.createSongFilter = function (ctx) {
+    const els = ctx.els;
+    const input = els.songFilter;
+    let raw = ""; // trimmed query, kept verbatim for the status line
+    let needle = ""; // lowercased query used for matching
+
+    input.addEventListener("input", function () {
+      raw = input.value.trim();
+      needle = raw.toLowerCase();
+      ctx.releases.setFilter();
+    });
+
+    input.addEventListener("keydown", function (event) {
+      // ArrowDown drops focus into the releases list, like the artist box does.
+      if (event.key === "ArrowDown" && els.releases.children.length) {
+        event.preventDefault();
+        ctx.releases.rove(ctx.releases.firstTabbable());
+      } else if (event.key === "Escape" && needle) {
+        // Clear the filter (and restore the full list) without leaving the box.
+        event.preventDefault();
+        input.value = "";
+        raw = "";
+        needle = "";
+        ctx.releases.setFilter();
+      }
+    });
+
+    return {
+      // Does a release title pass the current filter? An empty filter passes all.
+      test: function (title) {
+        if (!needle) return true;
+        return (title || "").toLowerCase().indexOf(needle) >= 0;
+      },
+      // The active query (verbatim), for status messages; "" when inactive.
+      query: function () {
+        return raw;
+      },
+      reset: function () {
+        raw = "";
+        needle = "";
+        input.value = "";
+      },
+    };
+  };
+})();

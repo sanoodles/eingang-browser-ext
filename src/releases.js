@@ -30,8 +30,10 @@
     function updateStatus() {
       const n = shownCount();
       const label = ctx.filters.activeLabel();
+      const q = ctx.songFilter.query();
       if (n) setStatus(currentArtistName + " — " + label + ": " + n + (hasMore ? "+" : ""));
       else if (hasMore) setStatus("Finding " + label + " for " + currentArtistName + "…");
+      else if (q) setStatus("No " + label + " matching “" + q + "”.");
       else setStatus("No " + label + " found for " + currentArtistName + ".");
     }
     const paging = YTSP.createPaging({
@@ -49,10 +51,11 @@
       ctx.runYouTubeSearch((who + " " + (rel.title || "")).trim());
       ctx.other.showOtherArtists(rel);
     }
-    // Append the items of `list` that pass both the category and role filters.
+    // Append the items of `list` that pass the category, role, and text filters.
     function appendMatching(list) {
       list.forEach(function (rel) {
         if (!ctx.filters.test(rel.role) || !ctx.subfilters.test(rel.role)) return;
+        if (!ctx.songFilter.test(rel.title)) return;
         const handlers = { activate: activateRelease, attach: paging.attach };
         releases.appendChild(YTSP.createReleaseRow(rel, handlers));
       });
@@ -95,7 +98,9 @@
       ctx.other.clearOtherArtists(); // previous release's collaborators are stale
       ctx.filters.reset(); // a new artist starts on the Releases filter
       ctx.subfilters.reset();
+      ctx.songFilter.reset(); // drop the previous artist's text filter
       els.filters.hidden = false;
+      els.songFilter.hidden = false;
       loadReleases(true);
     }
 

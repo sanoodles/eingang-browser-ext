@@ -66,6 +66,17 @@
     subfilters.setAttribute("aria-label", "Role within category");
     subfilters.hidden = true;
 
+    // Client-side text filter over the loaded releases (song-filter.js). Hidden
+    // until an artist is selected, like the category chips.
+    const songFilter = document.createElement("input");
+    songFilter.type = "text";
+    songFilter.className = "yt-rel-filter-input";
+    songFilter.placeholder = "Filter these releases…";
+    songFilter.autocomplete = "off";
+    songFilter.spellcheck = false;
+    songFilter.setAttribute("aria-label", "Filter releases");
+    songFilter.hidden = true;
+
     const status = document.createElement("div");
     status.className = "yt-search-panel-status";
     status.setAttribute("aria-live", "polite");
@@ -86,6 +97,7 @@
     panel.appendChild(box);
     panel.appendChild(filters);
     panel.appendChild(subfilters);
+    panel.appendChild(songFilter);
     panel.appendChild(status);
     panel.appendChild(releases);
     panel.appendChild(otherHeading);
@@ -94,12 +106,13 @@
 
     // Shared context; modules reference each other lazily via ctx, so creation
     // order doesn't matter as long as all are set before any event fires.
-    const els = { input, suggestions, filters, subfilters, status, releases, otherHeading, others };
+    const els = { input, suggestions, filters, subfilters, songFilter, status, releases, otherHeading, others };
     const ctx = { els: els, cfg: cfg, runYouTubeSearch: runYouTubeSearch };
     ctx.typeahead = YTSP.createTypeahead(ctx);
     ctx.releases = YTSP.createReleases(ctx);
     ctx.filters = YTSP.createFilters(ctx);
     ctx.subfilters = YTSP.createSubfilters(ctx);
+    ctx.songFilter = YTSP.createSongFilter(ctx);
     ctx.other = YTSP.createOtherArtists(ctx);
     ctx.other.clearOtherArtists(); // show the section's idle state from the start
   }

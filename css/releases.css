@@ -74,6 +74,29 @@ html[dark] #yt-search-panel-ext .yt-rel-filter.active {
   outline-offset: 2px;
 }
 
+/* Text filter that narrows the loaded releases list as you type. */
+#yt-search-panel-ext .yt-rel-filter-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--yt-panel-border);
+  border-radius: 16px;
+  background: var(--yt-panel-input-bg);
+  color: var(--yt-panel-text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  flex: 0 0 auto;
+}
+
+#yt-search-panel-ext .yt-rel-filter-input:focus {
+  border-color: var(--yt-panel-accent);
+}
+
+#yt-search-panel-ext .yt-rel-filter-input::placeholder {
+  color: var(--yt-panel-text-2);
+}
+
 /* Releases area below the input. */
 #yt-search-panel-ext .yt-search-panel-status {
   color: var(--yt-panel-text-2);

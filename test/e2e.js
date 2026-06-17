@@ -1,7 +1,7 @@
 // End-to-end test of the full panel journey on real YouTube:
 //   typeahead search → artist select → release list (default Releases filter)
-//   → category filter (Credits) → role sub-filter (Remixes) → activate a
-//   release (drives YouTube's own search).
+//   → text filter (narrow by title, then clear) → category filter (Credits)
+//   → role sub-filter (Remixes) → activate a release (drives YouTube's own search).
 //
 // It launches its own headless Chrome with the unpacked extension and tears it
 // down. It hits live YouTube + the Discogs API, so it needs network and is
@@ -62,8 +62,31 @@ const panelState = `(() => {
     rowCount: rows.length,
     metas: rows.slice(0, 12).map(r =>
       (r.querySelector('.yt-rel-meta') || {}).textContent || ''),
+    titles: rows.map(r => (r.querySelector('.yt-rel-title') || {}).textContent || ''),
+    filterValue: (q('.yt-rel-filter-input') || {}).value || '',
   };
 })()`;
+
+// Pick a query for the text-filter step: the most common ≥3-char word across the
+// shown titles that doesn't appear in *every* one — so filtering on it both keeps
+// some rows and drops others. Returns null if the titles share no such word.
+function pickNeedle(titles) {
+  const total = titles.length;
+  const freq = {};
+  titles.forEach((t) => {
+    const seen = new Set();
+    (t.toLowerCase().match(/[a-z0-9]+/g) || []).forEach((w) => {
+      if (w.length >= 3 && !seen.has(w)) {
+        seen.add(w);
+        freq[w] = (freq[w] || 0) + 1;
+      }
+    });
+  });
+  const narrowing = Object.keys(freq)
+    .filter((w) => freq[w] >= 1 && freq[w] < total)
+    .sort((a, b) => freq[b] - freq[a]);
+  return narrowing[0] || null;
+}
 
 function findChrome() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
@@ -163,7 +186,33 @@ async function run(page) {
   check("role sub-row hidden for single-role category",
     !!s.subfilters && s.subfilters.hidden, JSON.stringify(s.subfilters));
 
-  // 4. Category filter → Credits; page until the role sub-chips build.
+  // 4. Text filter narrows the loaded list to titles containing the query, and
+  // Esc clears it back to the full list. Done on the default Releases list, and
+  // cleared before the chip steps so it doesn't carry over into them.
+  const needle = pickNeedle(s.titles);
+  check("a filterable title word was found", !!needle,
+    JSON.stringify(s.titles.slice(0, 6)));
+  if (needle) {
+    await page.fill(".yt-rel-filter-input", needle);
+    await sleep(500);
+    const f = await page.evaluate(panelState);
+    const nlc = needle.toLowerCase();
+    check("text filter narrows to matching titles",
+      f.rowCount > 0 && f.titles.every((t) => t.toLowerCase().includes(nlc)),
+      "needle=" + needle + " titles=" + JSON.stringify(f.titles.slice(0, 6)));
+    check("text filter actually narrowed the list",
+      f.rowCount < s.rowCount, s.rowCount + " -> " + f.rowCount);
+
+    // Esc runs the keydown clear handler; the full list should come back.
+    await page.locator(".yt-rel-filter-input").press("Escape");
+    await sleep(800);
+    const c = await page.evaluate(panelState);
+    check("clearing the filter restores the list",
+      c.filterValue === "" && c.rowCount >= s.rowCount,
+      "value=" + JSON.stringify(c.filterValue) + " rows=" + c.rowCount);
+  }
+
+  // 5. Category filter → Credits; page until the role sub-chips build.
   await page.locator(".yt-rel-filter", { hasText: /^Credits$/ }).click();
   await sleep(1200);
   s = await pageUntil(page,
@@ -174,7 +223,7 @@ async function run(page) {
     !!s.subfilters && !s.subfilters.hidden && s.subfilters.chips.includes("Remixes"),
     JSON.stringify(s.subfilters));
 
-  // 5. Role sub-filter → Remixes narrows the list to Remix-role entries.
+  // 6. Role sub-filter → Remixes narrows the list to Remix-role entries.
   await page.locator(".yt-rel-subfilter", { hasText: /^Remixes$/ }).click();
   await sleep(1500);
   s = await page.evaluate(panelState);
@@ -183,7 +232,7 @@ async function run(page) {
     !!s.subfilters && s.subfilters.chips.includes("Remixes*"), JSON.stringify(s.subfilters));
   check("list narrowed to the chosen role", allRemix, JSON.stringify(s.metas.slice(0, 4)));
 
-  // 6. Activating a release drives YouTube's own search box. The query uses the
+  // 7. Activating a release drives YouTube's own search box. The query uses the
   // release's own credited artist, not the searched one, and drops a bare
   // "Various" — so assert a non-empty query that isn't "Various …".
   await page.locator(".yt-rel").first().click();

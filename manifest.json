@@ -18,6 +18,7 @@
         "src/typeahead.js",
         "src/filters.js",
         "src/subfilters.js",
+        "src/song-filter.js",
         "src/releases.js",
         "src/other-artists.js",
         "src/panel.js"

@@ -20,6 +20,9 @@ in-page YouTube search for it.
   full release / on a track). The chips are built from the roles present, so
   single-role categories (Releases, Unofficial) show none, and a role's chip
   appears once an entry with that role has loaded.
+- **Text filter** — a box below the chips narrows the list to releases whose
+  title contains what you type (case-insensitive, instant, no network). It keeps
+  paging to search the rest of the discography when few entries match.
 - **Search YouTube** — clicking a release drives YouTube's own search box (an
   in-page navigation, no full reload) and moves keyboard focus to the first
   result.
@@ -74,6 +77,8 @@ take effect.
   the search box. `↑` from the first row goes back to the search box.
 - **In the category / role filter chips:** `←`/`→` switch between chips
   (Releases / Appearances / Unofficial / Credits, or the role chips below them).
+- **In the text filter box:** type to narrow the list, `↓` jumps into the
+  releases list, `Esc` clears the filter.
 - **In YouTube's results** (left of the panel): `Tab` moves through results;
   the focused result card gets a highlighted ring. After a search the first
   result is focused automatically.
@@ -123,6 +128,7 @@ together. The two `inject-*` files run in YouTube's MAIN world.
 | `src/typeahead.js`       | Artist search box: debounced Discogs lookup + suggestion dropdown.  |
 | `src/filters.js`         | Category filter chips (Releases/Appearances/Unofficial/Credits).    |
 | `src/subfilters.js`      | Role sub-filter chips, built from the roles present in a category.  |
+| `src/song-filter.js`     | Text filter box: case-insensitive substring match on release titles. |
 | `src/releases.js`        | Loads/renders an artist's releases; runs the YouTube search.        |
 | `src/other-artists.js`   | "Other artists on this release" section.                            |
 | `src/panel.js`           | Builds the panel DOM, wires the modules, bootstraps.               |
