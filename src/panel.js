@@ -93,6 +93,15 @@
     const others = document.createElement("ul");
     others.className = "yt-search-panel-others";
 
+    // Footer: a one-click mailto link for user feedback (no backend, no perms —
+    // it just opens the user's mail client with a prefilled draft).
+    const feedback = document.createElement("a");
+    feedback.className = "yt-search-panel-feedback";
+    feedback.textContent = "Send feedback";
+    feedback.href =
+      "mailto:samuelgomezcrespo@gmail.com?subject=" +
+      encodeURIComponent("Eingang feedback");
+
     panel.appendChild(heading);
     panel.appendChild(box);
     panel.appendChild(filters);
@@ -102,6 +111,7 @@
     panel.appendChild(releases);
     panel.appendChild(otherHeading);
     panel.appendChild(others);
+    panel.appendChild(feedback);
     document.body.appendChild(panel);
 
     // Shared context; modules reference each other lazily via ctx, so creation

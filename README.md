@@ -46,7 +46,9 @@ result; a compilation's `Various` is dropped, leaving just the title.
 
 ## Notes
 
-- **Discogs API, no token.** Requests are unauthenticated — works, but rate-limited
-  (~25/minute) and without thumbnails. Heavy use may briefly hit the limit.
+- **Discogs API.** Requests are unauthenticated and rate-limited (~25/minute), so
+  heavy use may briefly hit the limit.
 - **Permissions.** Runs only on `*.youtube.com`; fetches from `api.discogs.com`.
 - **Privacy.** No data is collected or sent to the developer. See [PRIVACY.md](PRIVACY.md).
+- **Feedback.** The *Send feedback* link at the bottom of the panel opens a
+  pre-addressed email to the developer.

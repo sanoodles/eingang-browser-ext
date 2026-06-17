@@ -1,7 +1,8 @@
 // End-to-end test of the full panel journey on real YouTube:
 //   typeahead search → artist select → release list (default Releases filter)
 //   → text filter (narrow by title, then clear) → category filter (Credits)
-//   → role sub-filter (Remixes) → activate a release (drives YouTube's own search).
+//   → role sub-filter (Remixes) → feedback link present
+//   → activate a release (drives YouTube's own search).
 //
 // It launches its own headless Chrome with the unpacked extension and tears it
 // down. It hits live YouTube + the Discogs API, so it needs network and is
@@ -232,7 +233,13 @@ async function run(page) {
     !!s.subfilters && s.subfilters.chips.includes("Remixes*"), JSON.stringify(s.subfilters));
   check("list narrowed to the chosen role", allRemix, JSON.stringify(s.metas.slice(0, 4)));
 
-  // 7. Activating a release drives YouTube's own search box. The query uses the
+  // 7. Feedback link: a mailto at the bottom of the panel, addressed to the dev.
+  const feedbackHref = await page.evaluate(
+    `(document.querySelector('.yt-search-panel-feedback') || {}).href || ''`);
+  check("feedback mailto link present",
+    /^mailto:samuelgomezcrespo@gmail\.com/.test(feedbackHref), "href=" + feedbackHref);
+
+  // 8. Activating a release drives YouTube's own search box. The query uses the
   // release's own credited artist, not the searched one, and drops a bare
   // "Various" — so assert a non-empty query that isn't "Various …".
   await page.locator(".yt-rel").first().click();

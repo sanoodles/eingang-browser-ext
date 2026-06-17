@@ -49,7 +49,7 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 
 | File | Role |
 | --- | --- |
-| `manifest.json` | Manifest V3; lists content scripts, CSS, matches, and the two worlds. `js` order is load order. |
+| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches. `js` order is load order. |
 | `src/config.js` | Shared constants and the `YTSP` namespace object. |
 | `src/roving.js` | Generic roving-tabindex keyboard navigation for a list. |
 | `src/paging.js` | Auto-paging (IntersectionObserver) + loading row for the releases list. |
@@ -64,7 +64,7 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 | `src/inject-search.js` | MAIN world: drives YouTube's own search box. |
 | `src/inject-focus.js` | MAIN world: hears the panel's request, runs the search, focuses the first result. |
 | `css/layout.css` | Two-column page layout + z-index handling for YouTube overlays. |
-| `css/panel.css` | Panel container, theme variables, input, suggestions. |
+| `css/panel.css` | Panel container, theme variables, input, suggestions, feedback link. |
 | `css/releases.css` | Releases list, filters, loading spinner, other-artists section. |
 | `css/yt-results-focus.css` | Keyboard focus ring for YouTube's own results. |
 | `test/e2e.js` | The end-to-end test (headless Chrome). |
