@@ -23,7 +23,14 @@ npm run release        # bump version (commit + tag), build, then ship
 
 ### Releasing
 
-`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). `npm run release [-- minor|major|x.y.z]` (default `patch`) bumps `package.json`, syncs `manifest.json` via npm's `version` hook (`scripts/sync-version.js`), commits + tags, builds, and ships. The git commit/tag stay local — push with `git push --follow-tags`.
+`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). The release pipeline lives in `package.json`'s scripts so it reads top-to-bottom: `release` is `npm version … && npm run build && npm run ship`, and npm's `version` hook (`scripts/sync-version.js`) syncs `manifest.json` during the bump. The bump type is the `BUMP` env var (default `patch`):
+
+```bash
+npm run release             # patch: 1.1.0 -> 1.1.1
+BUMP=minor npm run release  # 1.1.0 -> 1.2.0   (also BUMP=major, or BUMP=2.0.0)
+```
+
+`release` commits + tags locally only — push with `git push --follow-tags`.
 
 `ship.js` talks to the Chrome Web Store API directly. Set these env vars first (a Google OAuth client with the Web Store API enabled; `CWS_EXTENSION_ID` defaults to the published ID):
 
