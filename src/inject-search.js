@@ -13,7 +13,7 @@
   // Drive YouTube's own search box: set its value, then press Enter the way a
   // user would. YouTube handles Enter with an in-page (SPA) navigation, so there
   // is no full document reload. Returns false if the search box can't be found.
-  NS.runYouTubeSearch = function (text) {
+  NS.runYouTubeSearch = (text) => {
     const ytInput = document.querySelector(
       "input#search, input[name='search_query']"
     );
@@ -21,15 +21,15 @@
 
     // Set the value through the native setter so YouTube's framework-bound input
     // notices the change, then announce it with an input event.
-    const proto = window.HTMLInputElement && window.HTMLInputElement.prototype;
+    const proto = window.HTMLInputElement?.prototype;
     const desc = proto && Object.getOwnPropertyDescriptor(proto, "value");
-    if (desc && desc.set) desc.set.call(ytInput, text);
+    if (desc?.set) desc.set.call(ytInput, text);
     else ytInput.value = text;
     ytInput.dispatchEvent(new Event("input", { bubbles: true }));
 
     // Submit by pressing Enter on the focused input.
     ytInput.focus();
-    ["keydown", "keypress", "keyup"].forEach(function (type) {
+    for (const type of ["keydown", "keypress", "keyup"]) {
       ytInput.dispatchEvent(
         new KeyboardEvent(type, {
           bubbles: true,
@@ -40,7 +40,7 @@
           which: 13,
         })
       );
-    });
+    }
     return true;
   };
 })();

@@ -25,16 +25,16 @@
     let roles = []; // role values currently shown as chips (ALL is implicit)
 
     function labelFor(role) {
-      return role === ALL ? "All" : LABELS[role] || role;
+      return role === ALL ? "All" : LABELS[role] ?? role;
     }
 
     function paint() {
-      Array.prototype.forEach.call(bar.children, function (b) {
+      for (const b of bar.children) {
         const on = b.dataset.role === activeRole;
         b.classList.toggle("active", on);
-        b.setAttribute("aria-selected", on ? "true" : "false");
+        b.setAttribute("aria-selected", String(on));
         b.tabIndex = on ? 0 : -1;
-      });
+      }
     }
 
     function chip(role) {
@@ -44,16 +44,16 @@
       b.dataset.role = role;
       b.textContent = labelFor(role);
       b.setAttribute("role", "tab");
-      b.addEventListener("click", function () {
+      b.addEventListener("click", () => {
         if (role === activeRole) return;
         activeRole = role;
         paint();
         ctx.releases.setFilter();
       });
-      b.addEventListener("keydown", function (e) {
+      b.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
         e.preventDefault();
-        const kids = Array.prototype.slice.call(bar.children);
+        const kids = [...bar.children];
         const dir = e.key === "ArrowRight" ? 1 : -1;
         const next = kids[(kids.indexOf(b) + dir + kids.length) % kids.length];
         next.focus();
@@ -67,29 +67,26 @@
     // one role or fewer remains, since there's nothing to narrow.
     function setFromCache(items, mainTest) {
       const next = [];
-      items.forEach(function (r) {
-        if (mainTest(r.role) && next.indexOf(r.role) < 0) next.push(r.role);
-      });
+      for (const r of items) {
+        if (mainTest(r.role) && !next.includes(r.role)) next.push(r.role);
+      }
       const same =
-        next.length === roles.length &&
-        next.every(function (r, i) { return r === roles[i]; });
+        next.length === roles.length && next.every((r, i) => r === roles[i]);
       if (same) return;
       roles = next;
-      if (roles.indexOf(activeRole) < 0) activeRole = ALL; // role no longer present
+      if (!roles.includes(activeRole)) activeRole = ALL; // role no longer present
       bar.replaceChildren();
       bar.hidden = roles.length <= 1;
       if (bar.hidden) return;
       bar.appendChild(chip(ALL));
-      roles.forEach(function (r) { bar.appendChild(chip(r)); });
+      for (const r of roles) bar.appendChild(chip(r));
       paint();
     }
 
     return {
-      test: function (role) {
-        return activeRole === ALL || role === activeRole;
-      },
-      setFromCache: setFromCache,
-      reset: function () {
+      test: (role) => activeRole === ALL || role === activeRole,
+      setFromCache,
+      reset: () => {
         activeRole = ALL;
         roles = [];
         bar.replaceChildren();

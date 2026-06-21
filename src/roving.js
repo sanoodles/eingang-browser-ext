@@ -12,30 +12,23 @@
   //   toInput   — called to move focus back up into the search box
   //   onRove    — optional hook run after a row is focused
   YTSP.createRoving = function (opts) {
-    const container = opts.container;
-    const rowClass = opts.rowClass;
-    const toInput = opts.toInput;
-    const onRove = opts.onRove;
+    const { container, rowClass, toInput, onRove } = opts;
 
     function rows() {
-      return Array.prototype.filter.call(container.children, function (el) {
-        return el.classList.contains(rowClass);
-      });
+      return [...container.children].filter((el) => el.classList.contains(rowClass));
     }
 
     function rove(li) {
       if (!li) return;
-      rows().forEach(function (r) {
-        r.tabIndex = -1;
-      });
+      for (const r of rows()) r.tabIndex = -1;
       li.tabIndex = 0;
       li.focus();
-      if (onRove) onRove(li);
+      onRove?.(li);
     }
 
     // Bind the standard key handling to one row; `activate` runs on Enter/Space.
     function attach(li, activate) {
-      li.addEventListener("keydown", function (event) {
+      li.addEventListener("keydown", (event) => {
         const list = rows();
         const idx = list.indexOf(li);
         switch (event.key) {
@@ -54,7 +47,7 @@
             break;
           case "End":
             event.preventDefault();
-            rove(list[list.length - 1]);
+            rove(list.at(-1));
             break;
           case "Enter":
           case " ":
@@ -69,6 +62,6 @@
       });
     }
 
-    return { rove: rove, attach: attach };
+    return { rove, attach };
   };
 })();

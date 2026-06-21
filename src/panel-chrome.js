@@ -10,8 +10,7 @@
   const YTSP = (window.YTSP = window.YTSP || {});
 
   YTSP.createPanelChrome = function (ctx) {
-    const cfg = ctx.cfg;
-    const els = ctx.els;
+    const { cfg, els } = ctx;
     const root = document.documentElement;
 
     let width = cfg.PANEL_DEFAULT_WIDTH;
@@ -25,7 +24,7 @@
     }
 
     function applyWidth() {
-      root.style.setProperty("--yt-panel-width", width + "px");
+      root.style.setProperty("--yt-panel-width", `${width}px`);
     }
 
     function isCollapsed() {
@@ -43,23 +42,23 @@
     // the "storage" permission is ever dropped, so every call is guarded.
     function save() {
       try {
-        const data = {};
-        data[cfg.STORE_WIDTH] = width;
-        data[cfg.STORE_COLLAPSED] = isCollapsed();
-        chrome.storage.local.set(data);
-      } catch (e) {}
+        chrome.storage.local.set({
+          [cfg.STORE_WIDTH]: width,
+          [cfg.STORE_COLLAPSED]: isCollapsed(),
+        });
+      } catch {}
     }
 
     function load() {
       try {
-        chrome.storage.local.get([cfg.STORE_WIDTH, cfg.STORE_COLLAPSED], function (got) {
-          if (got && typeof got[cfg.STORE_WIDTH] === "number") {
+        chrome.storage.local.get([cfg.STORE_WIDTH, cfg.STORE_COLLAPSED], (got) => {
+          if (typeof got?.[cfg.STORE_WIDTH] === "number") {
             width = clampWidth(got[cfg.STORE_WIDTH]);
             applyWidth();
           }
-          if (got && got[cfg.STORE_COLLAPSED]) setCollapsed(true);
+          if (got?.[cfg.STORE_COLLAPSED]) setCollapsed(true);
         });
-      } catch (e) {}
+      } catch {}
     }
 
     // --- drag to resize ---------------------------------------------------
@@ -75,10 +74,8 @@
     function onUp() {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
-      if (overlay) {
-        overlay.remove();
-        overlay = null;
-      }
+      overlay?.remove();
+      overlay = null;
       root.classList.remove("ytsp-resizing");
       save();
     }
@@ -97,7 +94,7 @@
 
     // Keyboard resize: arrows nudge the edge (Shift for a bigger step). Left
     // grows the panel (edge moves left), Right shrinks it.
-    els.resizeHandle.addEventListener("keydown", function (e) {
+    els.resizeHandle.addEventListener("keydown", (e) => {
       const step = e.shiftKey ? 40 : 16;
       if (e.key === "ArrowLeft") width = clampWidth(width + step);
       else if (e.key === "ArrowRight") width = clampWidth(width - step);
@@ -107,15 +104,11 @@
       save();
     });
 
-    els.collapseBtn.addEventListener("click", function () {
-      setCollapsed(true);
-    });
-    els.reopenBtn.addEventListener("click", function () {
-      setCollapsed(false);
-    });
+    els.collapseBtn.addEventListener("click", () => setCollapsed(true));
+    els.reopenBtn.addEventListener("click", () => setCollapsed(false));
 
     // Keep the width valid if the window is resized below the current fit.
-    window.addEventListener("resize", function () {
+    window.addEventListener("resize", () => {
       const clamped = clampWidth(width);
       if (clamped !== width) {
         width = clamped;
@@ -126,6 +119,6 @@
     applyWidth();
     load();
 
-    return { setCollapsed: setCollapsed, isCollapsed: isCollapsed };
+    return { setCollapsed, isCollapsed };
   };
 })();

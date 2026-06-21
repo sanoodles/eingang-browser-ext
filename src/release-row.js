@@ -15,7 +15,7 @@
     li.setAttribute("role", "button");
     li.setAttribute(
       "aria-label",
-      (rel.title || "(untitled)") + (rel.year ? ", " + rel.year : "")
+      `${rel.title || "(untitled)"}${rel.year ? `, ${rel.year}` : ""}`
     );
 
     const main = document.createElement("div");
@@ -40,9 +40,7 @@
     if (metaParts.length) main.appendChild(meta);
     li.appendChild(main);
 
-    function activate() {
-      handlers.activate(rel);
-    }
+    const activate = () => handlers.activate(rel);
     li.addEventListener("click", activate);
     handlers.attach(li, activate);
 

@@ -43,7 +43,7 @@ async function waitOk(fn) {
   try {
     await fn();
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -54,10 +54,10 @@ const panelState = `(() => {
   const q = (s) => document.querySelector(s);
   const chipInfo = (bar) => bar ? {
     hidden: !!bar.hidden,
-    chips: Array.prototype.map.call(bar.children, b =>
+    chips: [...bar.children].map(b =>
       b.textContent.trim() + (b.classList.contains('active') ? '*' : ''))
   } : null;
-  const rows = Array.prototype.slice.call(document.querySelectorAll('.yt-rel'));
+  const rows = [...document.querySelectorAll('.yt-rel')];
   return {
     status: (q('.yt-search-panel-status') || {}).textContent || null,
     filters: chipInfo(q('.yt-rel-filters')),
@@ -136,7 +136,7 @@ function findChrome() {
         best = bin;
       }
     }
-  } catch (e) {}
+  } catch {}
   return best;
 }
 
@@ -224,8 +224,8 @@ async function run(page) {
   const gotSuggestions = await waitOk(() =>
     page.waitForSelector(".yt-search-panel-result", { timeout: 15000 }));
   const suggestions = gotSuggestions
-    ? await page.evaluate(`Array.prototype.map.call(
-        document.querySelectorAll('.yt-search-panel-result'), e => e.textContent.trim())`)
+    ? await page.evaluate(`[...document.querySelectorAll('.yt-search-panel-result')]
+        .map(e => e.textContent.trim())`)
     : [];
   check("typeahead suggests the artist", suggestions.includes("Daft Punk"),
     JSON.stringify(suggestions));
@@ -414,7 +414,7 @@ async function run(page) {
     });
     try {
       fs.rmSync(PROFILE, { recursive: true, force: true });
-    } catch (e) {}
+    } catch {}
   }
   console.log("\n" + passed + " passed, " + failed + " failed");
   process.exit(failed ? 1 : 0);

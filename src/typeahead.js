@@ -5,11 +5,8 @@
   const YTSP = (window.YTSP = window.YTSP || {});
 
   YTSP.createTypeahead = function (ctx) {
-    const els = ctx.els;
-    const cfg = ctx.cfg;
-    const input = els.input;
-    const suggestions = els.suggestions;
-    const spinner = els.spinner;
+    const { els, cfg } = ctx;
+    const { input, suggestions, spinner } = els;
 
     let debounceTimer = null;
     let searchController = null; // AbortController for the in-flight fetch
@@ -20,7 +17,7 @@
     // Toggle the loading spinner overlaying the input's right edge.
     function setLoading(on) {
       spinner.hidden = !on;
-      input.setAttribute("aria-busy", on ? "true" : "false");
+      input.setAttribute("aria-busy", String(on));
     }
 
     function closeSuggestions() {
@@ -49,19 +46,17 @@
         closeSuggestions();
         return;
       }
-      list.forEach(function (item, i) {
+      list.forEach((item, i) => {
         const li = document.createElement("li");
         li.className = "yt-search-panel-result";
         li.textContent = item.name;
         li.setAttribute("role", "option");
         // mousedown fires before blur closes the list; preventDefault keeps focus.
-        li.addEventListener("mousedown", function (event) {
+        li.addEventListener("mousedown", (event) => {
           event.preventDefault();
           ctx.releases.selectArtist(item);
         });
-        li.addEventListener("mouseenter", function () {
-          setHighlight(i);
-        });
+        li.addEventListener("mouseenter", () => setHighlight(i));
         suggestions.appendChild(li);
       });
       highlight = -1;
@@ -70,38 +65,30 @@
       setLoading(false);
     }
 
-    function searchArtists(query) {
+    async function searchArtists(query) {
       setLoading(true);
-      if (searchController) searchController.abort();
+      searchController?.abort();
       searchController = new AbortController();
       const seq = ++searchSeq;
-      const url =
-        cfg.DISCOGS_SEARCH +
-        "?type=artist&per_page=" +
-        cfg.MAX_RESULTS +
-        "&q=" +
-        encodeURIComponent(query);
+      const url = `${cfg.DISCOGS_SEARCH}?type=artist&per_page=${cfg.MAX_RESULTS}&q=${encodeURIComponent(query)}`;
 
-      fetch(url, { signal: searchController.signal })
-        .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        })
-        .then(function (data) {
-          if (seq !== searchSeq) return; // a newer search superseded this one
-          const seen = new Set();
-          const list = [];
-          (data.results || []).forEach(function (r) {
-            if (!r.title || seen.has(r.id)) return;
-            seen.add(r.id);
-            list.push({ id: r.id, name: r.title });
-          });
-          renderSuggestions(list);
-        })
-        .catch(function (err) {
-          if (err.name === "AbortError" || seq !== searchSeq) return;
-          closeSuggestions();
-        });
+      try {
+        const res = await fetch(url, { signal: searchController.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (seq !== searchSeq) return; // a newer search superseded this one
+        const seen = new Set();
+        const list = [];
+        for (const r of data.results ?? []) {
+          if (!r.title || seen.has(r.id)) continue;
+          seen.add(r.id);
+          list.push({ id: r.id, name: r.title });
+        }
+        renderSuggestions(list);
+      } catch (err) {
+        if (err.name === "AbortError" || seq !== searchSeq) return;
+        closeSuggestions();
+      }
     }
 
     // Used when the other-artists list picks an artist: fill the box, focus it
@@ -113,28 +100,26 @@
       const end = input.value.length;
       try {
         input.setSelectionRange(end, end);
-      } catch (e) {} // not all inputs support selection range
+      } catch {} // not all inputs support selection range
       if (debounceTimer) clearTimeout(debounceTimer);
       const query = name.trim();
       if (query.length >= cfg.MIN_QUERY_LEN) searchArtists(query);
     }
 
-    input.addEventListener("input", function () {
+    input.addEventListener("input", () => {
       const query = input.value.trim();
       if (debounceTimer) clearTimeout(debounceTimer);
       if (query.length < cfg.MIN_QUERY_LEN) {
-        if (searchController) searchController.abort();
+        searchController?.abort();
         searchSeq++; // invalidate any pending response
         closeSuggestions();
         return;
       }
       setLoading(true); // immediate feedback through the debounce wait
-      debounceTimer = setTimeout(function () {
-        searchArtists(query);
-      }, cfg.DEBOUNCE_MS);
+      debounceTimer = setTimeout(() => searchArtists(query), cfg.DEBOUNCE_MS);
     });
 
-    input.addEventListener("keydown", function (event) {
+    input.addEventListener("keydown", (event) => {
       if (suggestions.hidden) {
         // No open suggestions: ArrowDown drops focus into the releases list.
         if (event.key === "ArrowDown" && els.releases.children.length) {
@@ -158,13 +143,8 @@
     });
 
     // Delay so a result's mousedown selection registers before we close.
-    input.addEventListener("blur", function () {
-      setTimeout(closeSuggestions, 150);
-    });
+    input.addEventListener("blur", () => setTimeout(closeSuggestions, 150));
 
-    return {
-      closeSuggestions: closeSuggestions,
-      setQueryAndSearch: setQueryAndSearch,
-    };
+    return { closeSuggestions, setQueryAndSearch };
   };
 })();

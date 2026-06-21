@@ -9,16 +9,13 @@
   const YTSP = (window.YTSP = window.YTSP || {});
 
   YTSP.createOtherArtists = function (ctx) {
-    const els = ctx.els;
-    const others = els.others;
-    const otherHeading = els.otherHeading;
+    const { els } = ctx;
+    const { others, otherHeading } = els;
 
     const roving = YTSP.createRoving({
       container: others,
       rowClass: "yt-other",
-      toInput: function () {
-        els.input.focus();
-      },
+      toInput: () => els.input.focus(),
     });
 
     function selectOtherArtist(name) {
@@ -38,7 +35,7 @@
         others.appendChild(li);
         return;
       }
-      names.forEach(function (name, i) {
+      names.forEach((name, i) => {
         const li = document.createElement("li");
         li.className = "yt-other";
         li.tabIndex = i === 0 ? 0 : -1; // roving; first row is the one in the Tab order
@@ -50,12 +47,8 @@
         nameEl.textContent = name;
         li.appendChild(nameEl);
 
-        li.addEventListener("click", function () {
-          selectOtherArtist(name);
-        });
-        roving.attach(li, function () {
-          selectOtherArtist(name);
-        });
+        li.addEventListener("click", () => selectOtherArtist(name));
+        roving.attach(li, () => selectOtherArtist(name));
 
         others.appendChild(li);
       });
@@ -68,29 +61,20 @@
     }
 
     function showOtherArtists(rel) {
-      const label = "“" + (rel.title || "") + "”"; // “title”
+      const label = `“${rel.title || ""}”`; // “title”
       const artistName = ctx.releases.artistName();
       // Split on " / " — the spaces matter, so names like "AC/DC" stay intact —
       // then drop the artist we're browsing and the "Various" placeholder.
       const names = (rel.artist || "")
         .split(" / ")
-        .map(function (s) {
-          return s.trim();
-        })
-        .filter(function (name) {
-          return name && name !== "Various" && name !== artistName;
-        })
-        .filter(function (name, i, arr) {
-          return arr.indexOf(name) === i; // de-dup
-        });
+        .map((s) => s.trim())
+        .filter((name) => name && name !== "Various" && name !== artistName)
+        .filter((name, i, arr) => arr.indexOf(name) === i); // de-dup
 
-      otherHeading.textContent = "Other artists on " + label;
+      otherHeading.textContent = `Other artists on ${label}`;
       renderOtherList(names, "No other artists on this release.");
     }
 
-    return {
-      clearOtherArtists: clearOtherArtists,
-      showOtherArtists: showOtherArtists,
-    };
+    return { clearOtherArtists, showOtherArtists };
   };
 })();

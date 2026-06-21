@@ -35,8 +35,7 @@
   // a toolbar button, the search box, etc. YouTube drops focus to such an
   // element while it rebuilds the results list.
   function focusIsOnResult() {
-    const a = document.activeElement;
-    return !!(a && a.closest && a.closest(RESULT_ITEMS));
+    return !!document.activeElement?.closest?.(RESULT_ITEMS);
   }
 
   // Class that yt-results-focus.css turns into a focus ring. We move focus here
@@ -47,10 +46,9 @@
   const KBD_FOCUS_CLASS = "yt-panel-kbd-focus";
 
   function clearKbdFocusMark() {
-    const marked = document.getElementsByClassName(KBD_FOCUS_CLASS);
-    // Live collection — iterate from the end while removing.
-    for (let i = marked.length - 1; i >= 0; i--) {
-      marked[i].classList.remove(KBD_FOCUS_CLASS);
+    // Snapshot the live collection so removing the class doesn't shift it mid-loop.
+    for (const el of [...document.getElementsByClassName(KBD_FOCUS_CLASS)]) {
+      el.classList.remove(KBD_FOCUS_CLASS);
     }
   }
 
@@ -61,9 +59,8 @@
     if (!item) return;
     clearKbdFocusMark();
     item.classList.add(KBD_FOCUS_CLASS);
-    link.addEventListener("blur", function onBlur() {
-      link.removeEventListener("blur", onBlur);
-      item.classList.remove(KBD_FOCUS_CLASS);
+    link.addEventListener("blur", () => item.classList.remove(KBD_FOCUS_CLASS), {
+      once: true,
     });
   }
 
@@ -116,7 +113,7 @@
     tick();
   }
 
-  document.addEventListener("yt-search-panel-run", function () {
+  document.addEventListener("yt-search-panel-run", () => {
     const query = document.documentElement.getAttribute(
       "data-yt-search-panel-query"
     );
@@ -128,9 +125,7 @@
     } else {
       // Fall back to a normal navigation if YouTube's search box isn't present
       // (unexpected DOM) so search still works, just with a reload.
-      window.location.href =
-        "https://www.youtube.com/results?search_query=" +
-        encodeURIComponent(query);
+      window.location.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
     }
   });
 })();

@@ -128,9 +128,7 @@
     const feedback = document.createElement("a");
     feedback.className = "yt-search-panel-feedback";
     feedback.textContent = "Send feedback";
-    feedback.href =
-      "mailto:samuelgomezcrespo@gmail.com?subject=" +
-      encodeURIComponent("Eingang feedback");
+    feedback.href = `mailto:samuelgomezcrespo@gmail.com?subject=${encodeURIComponent("Eingang feedback")}`;
 
     panel.appendChild(resizeHandle);
     panel.appendChild(header);
@@ -160,7 +158,7 @@
     // Shared context; modules reference each other lazily via ctx, so creation
     // order doesn't matter as long as all are set before any event fires.
     const els = { input, suggestions, spinner, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
-    const ctx = { els: els, cfg: cfg, runYouTubeSearch: runYouTubeSearch };
+    const ctx = { els, cfg, runYouTubeSearch };
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);
     ctx.releases = YTSP.createReleases(ctx);
@@ -175,7 +173,7 @@
     buildPanel();
   } else {
     // body not ready yet — wait for it.
-    const observer = new MutationObserver(function () {
+    const observer = new MutationObserver(() => {
       if (document.body) {
         observer.disconnect();
         buildPanel();

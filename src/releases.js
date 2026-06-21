@@ -6,8 +6,7 @@
   const YTSP = (window.YTSP = window.YTSP || {});
 
   YTSP.createReleases = function (ctx) {
-    const els = ctx.els;
-    const cfg = ctx.cfg;
+    const { els, cfg } = ctx;
     const releases = els.releases;
 
     let releasesController = null;
@@ -31,16 +30,16 @@
       const n = shownCount();
       const label = ctx.filters.activeLabel();
       const q = ctx.songFilter.query();
-      if (n) setStatus(currentArtistName + " — " + label + ": " + n + (hasMore ? "+" : ""));
-      else if (hasMore) setStatus("Finding " + label + " for " + currentArtistName + "…");
-      else if (q) setStatus("No " + label + " matching “" + q + "”.");
-      else setStatus("No " + label + " found for " + currentArtistName + ".");
+      if (n) setStatus(`${currentArtistName} — ${label}: ${n}${hasMore ? "+" : ""}`);
+      else if (hasMore) setStatus(`Finding ${label} for ${currentArtistName}…`);
+      else if (q) setStatus(`No ${label} matching “${q}”.`);
+      else setStatus(`No ${label} found for ${currentArtistName}.`);
     }
     const paging = YTSP.createPaging({
       container: releases,
-      toInput: function () { els.input.focus(); },
-      canLoadMore: function () { return hasMore && !loadingMore; },
-      loadMore: function () { loadReleases(false); },
+      toInput: () => els.input.focus(),
+      canLoadMore: () => hasMore && !loadingMore,
+      loadMore: () => loadReleases(false),
     });
 
     function activateRelease(rel) {
@@ -48,17 +47,17 @@
       // (they differ for productions/appearances); strip Discogs "(2)"/"*", drop "Various".
       let who = (rel.artist || "").replace(/\s*\(\d+\)|\*/g, "").trim();
       if (/^various$/i.test(who)) who = "";
-      ctx.runYouTubeSearch((who + " " + (rel.title || "")).trim());
+      ctx.runYouTubeSearch(`${who} ${rel.title || ""}`.trim());
       ctx.other.showOtherArtists(rel);
     }
     // Append the items of `list` that pass the category, role, and text filters.
     function appendMatching(list) {
       const handlers = { activate: activateRelease, attach: paging.attach };
-      list.forEach(function (rel) {
-        if (!ctx.filters.test(rel.role) || !ctx.subfilters.test(rel.role)) return;
-        if (!ctx.songFilter.test(rel.title)) return;
+      for (const rel of list) {
+        if (!ctx.filters.test(rel.role) || !ctx.subfilters.test(rel.role)) continue;
+        if (!ctx.songFilter.test(rel.title)) continue;
         releases.appendChild(YTSP.createReleaseRow(rel, handlers));
-      });
+      }
     }
     // Keep exactly one row in the Tab order (roving promotes the active one).
     function ensureTabbable() {
@@ -104,62 +103,53 @@
       loadReleases(true);
     }
 
-    function loadReleases(reset) {
-      if (releasesController) releasesController.abort();
+    async function loadReleases(reset) {
+      releasesController?.abort();
       releasesController = new AbortController();
       const seq = ++releasesSeq;
       const page = nextPage;
-      const url =
-        cfg.DISCOGS_ARTISTS + "/" + currentArtistId + "/releases" +
-        "?sort=year&sort_order=desc&per_page=" + cfg.RELEASES_PER_PAGE +
-        "&page=" + page;
+      const url = `${cfg.DISCOGS_ARTISTS}/${currentArtistId}/releases?sort=year&sort_order=desc&per_page=${cfg.RELEASES_PER_PAGE}&page=${page}`;
 
       // Block auto-load triggers (scroll/focus) while this page is in flight.
       loadingMore = true;
-      if (reset) setStatus("Loading releases for " + currentArtistName + "…");
+      if (reset) setStatus(`Loading releases for ${currentArtistName}…`);
       else paging.showLoadingRow(true);
 
-      fetch(url, { signal: releasesController.signal })
-        .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        })
-        .then(function (data) {
-          if (seq !== releasesSeq) return; // superseded by a newer selection
-          paging.showLoadingRow(false); // remove before appending so it stays last
-          const list = data.releases || [];
-          const pag = data.pagination || {};
-          totalPages = pag.pages || 1;
-          cache = cache.concat(list);
-          appendMatching(list);
-          ensureTabbable();
-          ctx.subfilters.setFromCache(cache, ctx.filters.test);
-          hasMore = page < totalPages;
-          if (hasMore) nextPage = page + 1;
-          loadingMore = false;
-          paging.observeLast(hasMore);
-          updateStatus();
-          fillIfHungry();
-        })
-        .catch(function (err) {
-          if (err.name === "AbortError" || seq !== releasesSeq) return;
-          paging.showLoadingRow(false);
-          loadingMore = false;
-          // Keep hasMore so a later scroll/focus can retry, but don't re-observe
-          // (an already-visible last row would retry-loop instantly).
-          hasMore = page < totalPages;
-          setStatus(
-            (reset ? "Couldn't load releases (" : "Couldn't load more (") + err.message + ")."
-          );
-        });
+      try {
+        const res = await fetch(url, { signal: releasesController.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (seq !== releasesSeq) return; // superseded by a newer selection
+        paging.showLoadingRow(false); // remove before appending so it stays last
+        const list = data.releases || [];
+        totalPages = data.pagination?.pages || 1;
+        cache = [...cache, ...list];
+        appendMatching(list);
+        ensureTabbable();
+        ctx.subfilters.setFromCache(cache, ctx.filters.test);
+        hasMore = page < totalPages;
+        if (hasMore) nextPage = page + 1;
+        loadingMore = false;
+        paging.observeLast(hasMore);
+        updateStatus();
+        fillIfHungry();
+      } catch (err) {
+        if (err.name === "AbortError" || seq !== releasesSeq) return;
+        paging.showLoadingRow(false);
+        loadingMore = false;
+        // Keep hasMore so a later scroll/focus can retry, but don't re-observe
+        // (an already-visible last row would retry-loop instantly).
+        hasMore = page < totalPages;
+        setStatus(`Couldn't load ${reset ? "releases" : "more"} (${err.message}).`);
+      }
     }
 
     return {
-      selectArtist: selectArtist,
-      setFilter: setFilter,
+      selectArtist,
+      setFilter,
       rove: paging.rove,
       firstTabbable: paging.firstTabbable,
-      artistName: function () { return currentArtistName; },
+      artistName: () => currentArtistName,
     };
   };
 })();
