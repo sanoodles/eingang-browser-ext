@@ -39,7 +39,7 @@ The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` 
 
 ### CSS
 
-`layout.css` reflows `<body>` into two columns (YouTube + 400px panel) and wins a z-index war: the panel sits at `2147483646`, and YouTube's overlays (`tp-yt-iron-dropdown`, `tp-yt-paper-dialog`) + masthead are nudged above it. `panel.css` theme variables follow YouTube's light/dark mode (`html[dark]`).
+`layout.css` reflows `<body>` into two columns (YouTube + the panel) and wins a z-index war: the panel sits at `2147483646`, and YouTube's overlays (`tp-yt-iron-dropdown`, `tp-yt-paper-dialog`) + masthead are nudged above it. The panel's width is the `--yt-panel-width` custom property on `<html>` (default 400px), which both the panel's flex-basis and the masthead's right inset read; `panel-chrome.js` rewrites it as the user drags the panel's left edge, and toggles an `ytsp-collapsed` class on `<html>` to hide the panel (revealing a floating reopen tab). Width and collapsed state persist in `chrome.storage.local`. `panel.css` theme variables follow YouTube's light/dark mode (`html[dark]`).
 
 ### Discogs API
 
@@ -49,8 +49,9 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 
 | File | Role |
 | --- | --- |
-| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches. `js` order is load order. |
+| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches, `storage` permission. `js` order is load order. |
 | `src/config.js` | Shared constants and the `YTSP` namespace object. |
+| `src/panel-chrome.js` | Collapse/expand toggle + draggable left edge to resize the panel; persists width & collapsed state. |
 | `src/roving.js` | Generic roving-tabindex keyboard navigation for a list. |
 | `src/paging.js` | Auto-paging (IntersectionObserver) + loading row for the releases list. |
 | `src/release-row.js` | Renders one release row. |

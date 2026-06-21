@@ -18,6 +18,8 @@ releases (newest first), and click one to run an in-page YouTube search for it.
 - **Search YouTube** — clicking a release drives YouTube's own search box (no full
   reload) and focuses the first result, searching under the release's credited artist.
 - **Other artists** — a release also lists its other headline artists; click one to search it.
+- **Resize & collapse** — drag the panel's left edge to set its width, or collapse
+  it to a tab on the page edge; your width and collapsed state are remembered.
 
 ## Install
 
@@ -41,6 +43,7 @@ result; a compilation's `Various` is dropped, leaving just the title.
 - **Lists (releases / other artists):** `↑`/`↓` move, `Home`/`End` jump, `Enter`/`Space`
   activates, `Esc` (or `↑` from the top row) returns to the search box.
 - **Filter chips:** `←`/`→` switch between chips.
+- **Resize grip:** focus the panel's left edge, then `←`/`→` to resize (`Shift` for bigger steps).
 - **Text filter box:** type to narrow, `↓` jumps into the list, `Esc` clears it.
 - **YouTube's results:** `Tab` moves through them; the focused card gets a ring.
 
@@ -48,7 +51,8 @@ result; a compilation's `Various` is dropped, leaving just the title.
 
 - **Discogs API.** Requests are unauthenticated and rate-limited (~25/minute), so
   heavy use may briefly hit the limit.
-- **Permissions.** Runs only on `*.youtube.com`; fetches from `api.discogs.com`.
+- **Permissions.** Runs only on `*.youtube.com`; fetches from `api.discogs.com`;
+  uses local `storage` to remember the panel's width and collapsed state.
 - **Privacy.** No data is collected or sent to the developer. See [PRIVACY.md](PRIVACY.md).
 - **Feedback.** The *Send feedback* link at the bottom of the panel opens a
   pre-addressed email to the developer.

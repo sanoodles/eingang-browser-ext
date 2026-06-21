@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Extension:** Eingang: Discogs releases for YouTube
-**Last updated:** 17 June 2026
+**Last updated:** 21 June 2026
 
 This extension does not collect, store, sell, or share any personal information,
 and it sends nothing to the developer. There are no accounts, no analytics, no
@@ -17,6 +17,9 @@ tracking, no advertising, and no remote code.
 - **Release selections.** Clicking a release fills YouTube's own search box and
   runs a search. This stays within the YouTube page you are already on and is
   subject to YouTube's normal data handling: https://policies.google.com/privacy
+- **Your panel preferences.** The panel's width and whether it is collapsed are
+  saved locally on your device (the browser's extension storage) so the panel
+  reopens the way you left it. This is not personal data and is never transmitted.
 
 ## What it does not do
 
@@ -24,13 +27,15 @@ tracking, no advertising, and no remote code.
   Discogs API request described above.
 - No personal data (identity, location, browsing history) is read or collected.
 - No cookies are set by the extension.
-- Nothing is stored: release data lives only in the page's memory while the tab
-  is open and is discarded when you close or reload it.
+- Nothing else is stored: release and search data live only in the page's memory
+  while the tab is open and are discarded when you close or reload it. The only
+  saved value is the local panel-layout preference described above.
 
 ## Permissions
 
-The extension runs only on `*.youtube.com` pages (declared in `manifest.json`)
-and needs no other permissions. Its network access is limited to fetching public
+The extension runs only on `*.youtube.com` pages and uses the `storage`
+permission to save your panel-layout preference locally on your device (both
+declared in `manifest.json`). Its network access is limited to fetching public
 data from `api.discogs.com`.
 
 ## Contact

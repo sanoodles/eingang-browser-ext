@@ -25,9 +25,32 @@
     const panel = document.createElement("div");
     panel.id = cfg.PANEL_ID;
 
+    // Draggable left edge (panel-chrome.js): a thin grip overlaying the border.
+    const resizeHandle = document.createElement("div");
+    resizeHandle.className = "yt-search-panel-resize";
+    resizeHandle.tabIndex = 0;
+    resizeHandle.setAttribute("role", "separator");
+    resizeHandle.setAttribute("aria-orientation", "vertical");
+    resizeHandle.setAttribute("aria-label", "Resize panel");
+
+    // Header row: title + a button that collapses the panel out of the way.
+    const header = document.createElement("div");
+    header.className = "yt-search-panel-header";
+
     const heading = document.createElement("div");
     heading.className = "yt-search-panel-heading";
     heading.textContent = "Search by artist";
+
+    const collapseBtn = document.createElement("button");
+    collapseBtn.type = "button";
+    collapseBtn.className = "yt-search-panel-collapse";
+    collapseBtn.textContent = "›";
+    collapseBtn.title = "Hide panel";
+    collapseBtn.setAttribute("aria-label", "Hide panel");
+    collapseBtn.setAttribute("aria-expanded", "true");
+
+    header.appendChild(heading);
+    header.appendChild(collapseBtn);
 
     // input + suggestion list live in a positioned wrapper so the dropdown can
     // overlay below the input.
@@ -102,7 +125,8 @@
       "mailto:samuelgomezcrespo@gmail.com?subject=" +
       encodeURIComponent("Eingang feedback");
 
-    panel.appendChild(heading);
+    panel.appendChild(resizeHandle);
+    panel.appendChild(header);
     panel.appendChild(box);
     panel.appendChild(filters);
     panel.appendChild(subfilters);
@@ -114,10 +138,23 @@
     panel.appendChild(feedback);
     document.body.appendChild(panel);
 
+    // Floating tab on the page's right edge that brings the panel back; shown by
+    // CSS only while the panel is collapsed. Lives outside the panel so it stays
+    // reachable when the panel is hidden.
+    const reopenBtn = document.createElement("button");
+    reopenBtn.type = "button";
+    reopenBtn.id = "yt-search-panel-reopen";
+    reopenBtn.textContent = "‹";
+    reopenBtn.title = "Show artist search panel";
+    reopenBtn.setAttribute("aria-label", "Show artist search panel");
+    reopenBtn.setAttribute("aria-hidden", "true");
+    document.body.appendChild(reopenBtn);
+
     // Shared context; modules reference each other lazily via ctx, so creation
     // order doesn't matter as long as all are set before any event fires.
-    const els = { input, suggestions, filters, subfilters, songFilter, status, releases, otherHeading, others };
+    const els = { input, suggestions, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
     const ctx = { els: els, cfg: cfg, runYouTubeSearch: runYouTubeSearch };
+    ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);
     ctx.releases = YTSP.createReleases(ctx);
     ctx.filters = YTSP.createFilters(ctx);

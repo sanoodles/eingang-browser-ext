@@ -8,11 +8,13 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "permissions": ["storage"],
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],
       "js": [
         "src/config.js",
+        "src/panel-chrome.js",
         "src/roving.js",
         "src/paging.js",
         "src/release-row.js",

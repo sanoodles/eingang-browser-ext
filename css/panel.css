@@ -14,9 +14,11 @@
   --yt-panel-accent: #065fd4;
   --yt-panel-shadow: rgba(0, 0, 0, 0.15);
 
-  /* In-flow column, not floating. Reserves real layout space. */
-  flex: 0 0 400px;
-  min-width: 400px;
+  /* In-flow column, not floating. Reserves real layout space. The width follows
+     --yt-panel-width (set by panel-chrome.js as the user drags the left edge),
+     defaulting to 400px before any custom value is applied. */
+  flex: 0 0 var(--yt-panel-width, 400px);
+  min-width: var(--yt-panel-width, 400px);
   align-self: flex-start;
   position: sticky;
   top: 0;
@@ -53,10 +55,132 @@ html[dark] #yt-search-panel-ext {
   --yt-panel-shadow: rgba(0, 0, 0, 0.5);
 }
 
+/* Header row: title on the left, collapse button on the right. */
+#yt-search-panel-ext .yt-search-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 #yt-search-panel-ext .yt-search-panel-heading {
   font-size: 16px;
   font-weight: 500;
-  margin-bottom: 4px;
+}
+
+/* Collapse button: a round, subtle chevron that hides the panel. */
+#yt-search-panel-ext .yt-search-panel-collapse {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--yt-panel-text-2);
+  font-family: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#yt-search-panel-ext .yt-search-panel-collapse:hover {
+  background: var(--yt-panel-hover);
+  color: var(--yt-panel-text);
+}
+
+#yt-search-panel-ext .yt-search-panel-collapse:focus-visible {
+  outline: 2px solid var(--yt-panel-accent);
+  outline-offset: 2px;
+}
+
+/* Draggable left edge: a thin grip overlaying the panel's left border. The
+   panel is position:sticky (a positioned ancestor), so this anchors to it. */
+#yt-search-panel-ext .yt-search-panel-resize {
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+#yt-search-panel-ext .yt-search-panel-resize::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 2px;
+  height: 100%;
+  background: transparent;
+}
+
+#yt-search-panel-ext .yt-search-panel-resize:hover::before,
+html.ytsp-resizing #yt-search-panel-ext .yt-search-panel-resize::before {
+  background: var(--yt-panel-accent);
+}
+
+#yt-search-panel-ext .yt-search-panel-resize:focus-visible {
+  outline: 2px solid var(--yt-panel-accent);
+  outline-offset: -2px;
+}
+
+/* Floating reopen tab on the page's right edge, shown only while collapsed.
+   It sits outside the panel subtree, so it carries its own colors (the panel's
+   theme vars don't reach here) keyed off YouTube's `dark` attribute. */
+#yt-search-panel-reopen {
+  position: fixed;
+  /* Anchored just below YouTube's ~56px masthead, near the top — so it's close
+     to where the collapse button was, not stranded mid-screen on tall viewports.
+     (Once the panel is hidden the masthead spans the full width, so the tab can't
+     sit any higher without overlapping the avatar.) */
+  top: 64px;
+  right: 0;
+  z-index: 2147483646;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 72px;
+  padding: 0;
+  border: 1px solid #cccccc;
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  background: #ffffff;
+  color: #0f0f0f;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+html[dark] #yt-search-panel-reopen {
+  border-color: #303030;
+  background: #212121;
+  color: #ffffff;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.5);
+}
+
+html.ytsp-collapsed #yt-search-panel-reopen {
+  display: flex;
+}
+
+#yt-search-panel-reopen:hover {
+  color: #065fd4;
+}
+
+html[dark] #yt-search-panel-reopen:hover {
+  color: #3ea6ff;
+}
+
+#yt-search-panel-reopen:focus-visible {
+  outline: 2px solid #065fd4;
+  outline-offset: 2px;
 }
 
 /* Feedback footer: a subtle mailto link at the bottom of the panel. */
