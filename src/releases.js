@@ -53,10 +53,10 @@
     }
     // Append the items of `list` that pass the category, role, and text filters.
     function appendMatching(list) {
+      const handlers = { activate: activateRelease, attach: paging.attach };
       list.forEach(function (rel) {
         if (!ctx.filters.test(rel.role) || !ctx.subfilters.test(rel.role)) return;
         if (!ctx.songFilter.test(rel.title)) return;
-        const handlers = { activate: activateRelease, attach: paging.attach };
         releases.appendChild(YTSP.createReleaseRow(rel, handlers));
       });
     }

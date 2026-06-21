@@ -52,9 +52,9 @@
 
     function find(id) {
       return (
-        CATS.filter(function (c) {
+        CATS.find(function (c) {
           return c.id === id;
-        })[0] || CATS[0]
+        }) || CATS[0]
       );
     }
 

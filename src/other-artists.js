@@ -38,10 +38,10 @@
         others.appendChild(li);
         return;
       }
-      names.forEach(function (name) {
+      names.forEach(function (name, i) {
         const li = document.createElement("li");
         li.className = "yt-other";
-        li.tabIndex = -1; // roving; first row is promoted to 0 below
+        li.tabIndex = i === 0 ? 0 : -1; // roving; first row is the one in the Tab order
         li.setAttribute("role", "button");
         li.setAttribute("aria-label", name);
 
@@ -59,9 +59,6 @@
 
         others.appendChild(li);
       });
-      // Make the first artist the one row in the Tab order.
-      const firstRow = others.querySelector(".yt-other");
-      if (firstRow) firstRow.tabIndex = 0;
     }
 
     // Idle state (no release selected yet); the section stays on screen.
