@@ -28,6 +28,7 @@
   ];
   const DEFAULT_ID = "releases";
 
+  /** @param {Ctx} ctx */
   YTSP.createFilters = function (ctx) {
     const bar = ctx.els.filters;
     let activeId = DEFAULT_ID;

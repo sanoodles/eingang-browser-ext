@@ -6,11 +6,13 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
-  // opts: { container, rowClass, toInput, onRove? }
-  //   container — the <ul> holding the rows
-  //   rowClass  — class identifying real rows (skips decorative children)
-  //   toInput   — called to move focus back up into the search box
-  //   onRove    — optional hook run after a row is focused
+  /**
+   * @param {Object} opts
+   * @param {HTMLElement} opts.container the <ul> holding the rows
+   * @param {string} opts.rowClass class identifying real rows (skips decorative children)
+   * @param {() => void} opts.toInput moves focus back up into the search box
+   * @param {(li: HTMLElement) => void} [opts.onRove] optional hook run after a row is focused
+   */
   YTSP.createRoving = function (opts) {
     const { container, rowClass, toInput, onRove } = opts;
 

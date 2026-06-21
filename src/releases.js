@@ -5,6 +5,7 @@
   "use strict";
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  /** @param {Ctx} ctx */
   YTSP.createReleases = function (ctx) {
     const { els, cfg } = ctx;
     const releases = els.releases;
@@ -44,9 +45,9 @@
 
     function activateRelease(rel) {
       // Use the release's own credited artist (rel.artist), not the searched one
-      // (they differ for productions/appearances); strip Discogs "(2)"/"*", drop "Various".
-      let who = (rel.artist || "").replace(/\s*\(\d+\)|\*/g, "").trim();
-      if (/^various$/i.test(who)) who = "";
+      // (they differ for productions/appearances); clean it, then drop "Various".
+      let who = YTSP.cleanArtistName(rel.artist);
+      if (YTSP.isVarious(who)) who = "";
       ctx.runYouTubeSearch(`${who} ${rel.title || ""}`.trim());
       ctx.other.showOtherArtists(rel);
     }
@@ -147,8 +148,9 @@
     return {
       selectArtist,
       setFilter,
-      rove: paging.rove,
-      firstTabbable: paging.firstTabbable,
+      // Move keyboard focus into the list's first row — ArrowDown from the
+      // artist box or the text filter lands here.
+      focusFirst: () => paging.rove(paging.firstTabbable()),
       artistName: () => currentArtistName,
     };
   };

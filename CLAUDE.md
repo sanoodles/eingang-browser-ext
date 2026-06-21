@@ -31,7 +31,7 @@ The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` 
 
 ### `YTSP` factory/`ctx` wiring
 
-`config.js` creates `window.YTSP` and holds tunable constants (debounce, page sizes, Discogs URLs, `RELEASES_FILL_MIN`). Each module registers a factory (`YTSP.createReleases`, …). `panel.js` (**loaded last**) builds the DOM, gathers elements into `els`, builds `ctx = { els, cfg, runYouTubeSearch }`, then calls every factory and stores the result back on `ctx` (`ctx.releases`, …). Modules reach each other lazily via `ctx`, so factory order is free — but manifest `js` order *is* load order, and `panel.js` must stay last. **Adding a module:** register it in `manifest.json` before `panel.js`, then create its element and instantiate it into `ctx` in `panel.js`.
+`config.js` creates `window.YTSP` and holds tunable constants (debounce, page sizes, Discogs URLs, `RELEASES_FILL_MIN`), a couple of shared artist-name helpers (`cleanArtistName`, `isVarious`), and the JSDoc typedefs for the shared contract (`Cfg`, `Els`, `Release`, `Ctx`). Each module registers a factory (`YTSP.createReleases`, …) and annotates it `@param {Ctx} ctx` — since there's no `import`/`export`, the typedefs are ambient/global and give editor autocomplete across files for free. `panel.js` (**loaded last**) builds the DOM, gathers elements into `els`, builds `ctx = { els, cfg, runYouTubeSearch }`, then calls every factory and stores the result back on `ctx` (`ctx.releases`, …). Modules reach each other lazily via `ctx`, so factory order is free — but manifest `js` order *is* load order, and `panel.js` must stay last. **Adding a module:** register it in `manifest.json` before `panel.js`, then create its element and instantiate it into `ctx` in `panel.js` (and add it to the `Ctx` typedef in `config.js`).
 
 ### Releases: one cache, filters narrow it, paging fills it
 
@@ -50,7 +50,7 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 | File | Role |
 | --- | --- |
 | `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches, `storage` permission. `js` order is load order. |
-| `src/config.js` | Shared constants and the `YTSP` namespace object. |
+| `src/config.js` | Shared constants, JSDoc typedefs (`Cfg`/`Els`/`Release`/`Ctx`), artist-name helpers (`cleanArtistName`/`isVarious`), and the `YTSP` namespace object. |
 | `src/panel-chrome.js` | Collapse/expand toggle + draggable left edge to resize the panel; persists width & collapsed state. |
 | `src/roving.js` | Generic roving-tabindex keyboard navigation for a list. |
 | `src/paging.js` | Auto-paging (IntersectionObserver) + loading row for the releases list. |

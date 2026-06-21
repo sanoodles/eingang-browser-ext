@@ -8,6 +8,7 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  /** @param {Ctx} ctx */
   YTSP.createOtherArtists = function (ctx) {
     const { els } = ctx;
     const { others, otherHeading } = els;
@@ -62,13 +63,13 @@
 
     function showOtherArtists(rel) {
       const label = `“${rel.title || ""}”`; // “title”
-      const artistName = ctx.releases.artistName();
+      const artistName = YTSP.cleanArtistName(ctx.releases.artistName());
       // Split on " / " — the spaces matter, so names like "AC/DC" stay intact —
-      // then drop the artist we're browsing and the "Various" placeholder.
+      // then clean each name and drop the artist we're browsing plus "Various".
       const names = (rel.artist || "")
         .split(" / ")
-        .map((s) => s.trim())
-        .filter((name) => name && name !== "Various" && name !== artistName)
+        .map((s) => YTSP.cleanArtistName(s))
+        .filter((name) => name && !YTSP.isVarious(name) && name !== artistName)
         .filter((name, i, arr) => arr.indexOf(name) === i); // de-dup
 
       otherHeading.textContent = `Other artists on ${label}`;

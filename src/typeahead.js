@@ -4,6 +4,11 @@
   "use strict";
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  // Delay closing the dropdown on blur so a result's mousedown selection
+  // registers before the list disappears.
+  const BLUR_CLOSE_MS = 150;
+
+  /** @param {Ctx} ctx */
   YTSP.createTypeahead = function (ctx) {
     const { els, cfg } = ctx;
     const { input, suggestions, spinner } = els;
@@ -124,7 +129,7 @@
         // No open suggestions: ArrowDown drops focus into the releases list.
         if (event.key === "ArrowDown" && els.releases.children.length) {
           event.preventDefault();
-          ctx.releases.rove(ctx.releases.firstTabbable());
+          ctx.releases.focusFirst();
         }
         return;
       }
@@ -142,8 +147,7 @@
       }
     });
 
-    // Delay so a result's mousedown selection registers before we close.
-    input.addEventListener("blur", () => setTimeout(closeSuggestions, 150));
+    input.addEventListener("blur", () => setTimeout(closeSuggestions, BLUR_CLOSE_MS));
 
     return { closeSuggestions, setQueryAndSearch };
   };

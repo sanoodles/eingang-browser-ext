@@ -19,6 +19,7 @@
     UnofficialRelease: "Unofficial",
   };
 
+  /** @param {Ctx} ctx */
   YTSP.createSubfilters = function (ctx) {
     const bar = ctx.els.subfilters;
     let activeRole = ALL;

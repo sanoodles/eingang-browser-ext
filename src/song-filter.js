@@ -6,6 +6,7 @@
   "use strict";
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  /** @param {Ctx} ctx */
   YTSP.createSongFilter = function (ctx) {
     const { els } = ctx;
     const input = els.songFilter;
@@ -22,7 +23,7 @@
       // ArrowDown drops focus into the releases list, like the artist box does.
       if (event.key === "ArrowDown" && els.releases.children.length) {
         event.preventDefault();
-        ctx.releases.rove(ctx.releases.firstTabbable());
+        ctx.releases.focusFirst();
       } else if (event.key === "Escape" && needle) {
         // Clear the filter (and restore the full list) without leaving the box.
         event.preventDefault();

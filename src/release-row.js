@@ -5,9 +5,13 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
-  // rel — a Discogs release list item.
-  // handlers: { activate(rel), attach(li, activateFn) } — activate runs the
-  //   YouTube search; attach binds roving-tabindex keyboard nav to the row.
+  /**
+   * @param {Release} rel a Discogs release list item
+   * @param {Object} handlers
+   * @param {(rel: Release) => void} handlers.activate runs the YouTube search
+   * @param {(li: HTMLElement, activateFn: () => void) => void} handlers.attach
+   *   binds roving-tabindex keyboard nav to the row
+   */
   YTSP.createReleaseRow = function (rel, handlers) {
     const li = document.createElement("li");
     li.className = "yt-rel";

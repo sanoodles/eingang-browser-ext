@@ -45,6 +45,12 @@
   // pressed another key. Tagging the card forces it on immediately.
   const KBD_FOCUS_CLASS = "yt-panel-kbd-focus";
 
+  // focusFirstResult polling (see its comment for why it polls rather than
+  // focusing once).
+  const POLL_MS = 150; // re-check focus this often after the search fires
+  const STABLE_MS = 1200; // first result unchanged + focused this long ⇒ done
+  const TIMEOUT_MS = 6000; // give up regrabbing focus after this
+
   function clearKbdFocusMark() {
     // Snapshot the live collection so removing the class doesn't shift it mid-loop.
     for (const el of [...document.getElementsByClassName(KBD_FOCUS_CLASS)]) {
@@ -77,7 +83,7 @@
   function focusFirstResult(startHref) {
     if (pendingTimer) clearInterval(pendingTimer);
     clearKbdFocusMark(); // drop any ring left over from a previous search
-    const deadline = Date.now() + 6000;
+    const deadline = Date.now() + TIMEOUT_MS;
     let lastItem = null;
     let lastChange = Date.now();
 
@@ -103,13 +109,13 @@
           link.focus();
           markKbdFocus(link);
         }
-      } else if (Date.now() - lastChange > 1200) {
+      } else if (Date.now() - lastChange > STABLE_MS) {
         // First result stable and focus sitting on a result — we're done.
         done();
       }
     }
 
-    pendingTimer = setInterval(tick, 150);
+    pendingTimer = setInterval(tick, POLL_MS);
     tick();
   }
 

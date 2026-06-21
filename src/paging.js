@@ -7,9 +7,13 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
-  // opts: { container, toInput, canLoadMore, loadMore }
-  //   canLoadMore() -> bool (more pages exist and none is in flight)
-  //   loadMore()    -> fetch the next page
+  /**
+   * @param {Object} opts
+   * @param {HTMLElement} opts.container the scrollable <ul> of release rows
+   * @param {() => void} opts.toInput moves focus back up into the search box
+   * @param {() => boolean} opts.canLoadMore more pages exist and none is in flight
+   * @param {() => void} opts.loadMore fetch the next page
+   */
   YTSP.createPaging = function (opts) {
     const container = opts.container;
     let observedLast = null;

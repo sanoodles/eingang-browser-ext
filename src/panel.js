@@ -157,7 +157,9 @@
 
     // Shared context; modules reference each other lazily via ctx, so creation
     // order doesn't matter as long as all are set before any event fires.
+    /** @type {Els} */
     const els = { input, suggestions, spinner, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
+    /** @type {Ctx} */
     const ctx = { els, cfg, runYouTubeSearch };
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);

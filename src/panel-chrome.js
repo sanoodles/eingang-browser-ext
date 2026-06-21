@@ -9,6 +9,12 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  // Keyboard resize: px the arrow keys nudge the panel edge, normally and with
+  // Shift held.
+  const RESIZE_STEP = 16;
+  const RESIZE_STEP_BIG = 40;
+
+  /** @param {Ctx} ctx */
   YTSP.createPanelChrome = function (ctx) {
     const { cfg, els } = ctx;
     const root = document.documentElement;
@@ -95,7 +101,7 @@
     // Keyboard resize: arrows nudge the edge (Shift for a bigger step). Left
     // grows the panel (edge moves left), Right shrinks it.
     els.resizeHandle.addEventListener("keydown", (e) => {
-      const step = e.shiftKey ? 40 : 16;
+      const step = e.shiftKey ? RESIZE_STEP_BIG : RESIZE_STEP;
       if (e.key === "ArrowLeft") width = clampWidth(width + step);
       else if (e.key === "ArrowRight") width = clampWidth(width - step);
       else return;
