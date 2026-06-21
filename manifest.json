@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Eingang: Discogs releases for YouTube",
   "short_name": "Eingang",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Unofficial side panel to browse any artist's Discogs releases and search for them on YouTube with one click.",
   "icons": {
     "48": "icons/icon48.png",
