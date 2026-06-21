@@ -2,7 +2,8 @@
 //   typeahead search → artist select → release list (default Releases filter)
 //   → text filter (narrow by title, then clear) → category filter (Credits)
 //   → role sub-filter (Remixes) → feedback link present
-//   → activate a release (drives YouTube's search + fills "Other artists").
+//   → activate a release (drives YouTube's search + fills "Other artists")
+//   → panel chrome (collapse/reopen toggle, drag-resize, persist across reload).
 //
 // It launches its own headless Chrome with the unpacked extension and tears it
 // down. It hits live YouTube + the Discogs API, so it needs network and is
@@ -71,6 +72,26 @@ const panelState = `(() => {
   };
 })()`;
 
+// Panel-chrome (panel-chrome.js) state: the collapsed class + width custom
+// property on <html>, plus the visibility/aria of the toggle and reopen tab.
+// display-based visibility (not offsetParent) because the reopen tab is fixed.
+const chromeState = `(() => {
+  const root = document.documentElement;
+  const disp = (el) => el ? getComputedStyle(el).display : 'none';
+  const panel = document.getElementById('yt-search-panel-ext');
+  const reopen = document.getElementById('yt-search-panel-reopen');
+  const collapseBtn = document.querySelector('.yt-search-panel-collapse');
+  return {
+    collapsed: root.classList.contains('ytsp-collapsed'),
+    panelVisible: disp(panel) !== 'none',
+    reopenVisible: disp(reopen) !== 'none',
+    collapseExpanded: collapseBtn && collapseBtn.getAttribute('aria-expanded'),
+    reopenHidden: reopen && reopen.getAttribute('aria-hidden'),
+    width: parseInt(root.style.getPropertyValue('--yt-panel-width'), 10) || null,
+    innerWidth: window.innerWidth,
+  };
+})()`;
+
 // Pick a query for the text-filter step: the most common ≥3-char word across the
 // shown titles that doesn't appear in *every* one — so filtering on it both keeps
 // some rows and drops others. Returns null if the titles share no such word.
@@ -90,6 +111,13 @@ function pickNeedle(titles) {
     .filter((w) => freq[w] >= 1 && freq[w] < total)
     .sort((a, b) => freq[b] - freq[a]);
   return narrowing[0] || null;
+}
+
+// Mirror of panel-chrome.js clampWidth (config.js: MIN 280, MAX 760, keep 480 for
+// YouTube), so a drag's resulting width is predictable from the cursor position.
+function expectWidth(innerWidth, px) {
+  const max = Math.min(760, Math.max(280, innerWidth - 480));
+  return Math.min(max, Math.max(280, Math.round(px)));
 }
 
 function findChrome() {
@@ -154,6 +182,21 @@ async function pageUntil(page, ready, tries) {
     await sleep(1600);
   }
   return page.evaluate(panelState);
+}
+
+// Drag the panel's left edge by dx CSS px with a real mouse gesture (negative dx
+// grows the panel), so panel-chrome's mousedown→mousemove→mouseup path runs.
+// Grabs the handle mid-height to stay clear of YouTube's fixed masthead. Returns
+// the edge's final clientX, from which the expected width is innerWidth - x.
+async function dragResize(page, dx) {
+  const box = await page.locator(".yt-search-panel-resize").boundingBox();
+  const cx = box.x + box.width / 2;
+  const cy = box.y + Math.min(box.height / 2, 400);
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + dx, cy, { steps: 10 });
+  await page.mouse.up();
+  return cx + dx;
 }
 
 async function run(page) {
@@ -264,6 +307,61 @@ async function run(page) {
     : null;
   check("activating a release runs a YouTube search",
     searched && !!q && !/^various\b/i.test(q), "query=" + q);
+
+  // 9. Panel chrome (panel-chrome.js): the collapse/reopen toggle hides and
+  // restores the panel (flipping aria + the floating tab), dragging the left edge
+  // resizes it, and both the width and collapsed state survive a page reload
+  // (persisted in chrome.storage.local). The panel survives the SPA navigation
+  // from step 8, so its DOM is still here; the reload at the end re-injects it.
+  let cs = await page.evaluate(chromeState);
+  const startWidth = cs.width;
+
+  // Collapse hides the panel and reveals the reopen tab.
+  await page.locator(".yt-search-panel-collapse").click();
+  await sleep(300);
+  cs = await page.evaluate(chromeState);
+  check("collapse hides the panel and shows the reopen tab",
+    cs.collapsed && !cs.panelVisible && cs.reopenVisible, JSON.stringify(cs));
+  check("collapse flips the toggle/tab aria state",
+    cs.collapseExpanded === "false" && cs.reopenHidden === "false", JSON.stringify(cs));
+
+  // The reopen tab brings the panel back and hides itself again.
+  await page.locator("#yt-search-panel-reopen").click();
+  await sleep(300);
+  cs = await page.evaluate(chromeState);
+  check("reopen tab restores the panel",
+    !cs.collapsed && cs.panelVisible && !cs.reopenVisible, JSON.stringify(cs));
+  check("reopen restores the aria state",
+    cs.collapseExpanded === "true" && cs.reopenHidden === "true", JSON.stringify(cs));
+
+  // Dragging the left edge outward widens the panel to the cursor position.
+  const edgeX = await dragResize(page, -120);
+  await sleep(300);
+  cs = await page.evaluate(chromeState);
+  const expected = expectWidth(cs.innerWidth, cs.innerWidth - edgeX);
+  check("dragging the edge resized the panel",
+    cs.width > startWidth, startWidth + " -> " + cs.width);
+  check("drag landed on the expected width",
+    cs.width != null && Math.abs(cs.width - expected) <= 2,
+    "got " + cs.width + " expected ~" + expected);
+
+  // Collapse, reload, and confirm both the resized width and the collapsed state
+  // are restored — proving they were persisted to chrome.storage.local.
+  const savedWidth = cs.width;
+  await page.locator(".yt-search-panel-collapse").click();
+  await sleep(400);
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.waitForSelector("ytd-app", { timeout: 30000 });
+  await waitOk(() => page.waitForSelector("#yt-search-panel-ext", { timeout: 15000 }));
+  // The stored state is applied from chrome.storage's async get() callback, which
+  // runs after the panel injects — wait for the collapsed class to reappear.
+  const persisted = await waitOk(() => page.waitForFunction(
+    `document.documentElement.classList.contains("ytsp-collapsed")`, { timeout: 15000 }));
+  cs = await page.evaluate(chromeState);
+  check("collapsed state persists across reload", persisted && cs.collapsed,
+    JSON.stringify(cs));
+  check("panel width persists across reload", cs.width === savedWidth,
+    "saved=" + savedWidth + " restored=" + cs.width);
 }
 
 (async () => {
