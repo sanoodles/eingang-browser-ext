@@ -1,10 +1,11 @@
 // End-to-end test of the full panel journey on real YouTube:
-//   typeahead search (spinner while loading) → artist select
-//   → release list (default Releases filter)
+//   typeahead search (spinner while loading; arrow-key highlight) → artist select
+//   → release list (default Releases filter; arrow-key roving into/within the list)
 //   → text filter (narrow by title, then clear) → category filter (Credits)
 //   → role sub-filter (Remixes) → feedback link present
 //   → activate a release (drives YouTube's search + fills "Other artists")
-//   → panel chrome (collapse/reopen toggle, drag-resize, persist across reload).
+//   → panel chrome (collapse/reopen toggle, drag- and keyboard-resize,
+//     persist across reload).
 //
 // It launches its own headless Chrome with the unpacked extension and tears it
 // down. It hits live YouTube + the Discogs API, so it needs network and is
@@ -238,6 +239,27 @@ async function run(page) {
   })()`, { timeout: 15000 }));
   check("spinner clears once suggestions arrive", spinnerCleared);
 
+  // 2b. Keyboard highlight in the dropdown: ArrowDown moves the active suggestion
+  // down the list and ArrowUp moves it back (the 'active' class marks it). We
+  // assert the highlight position only, then still select by click below so the
+  // rest of the journey keeps the exact "Daft Punk" match.
+  const activeSuggestion = `(() => {
+    const lis = [...document.querySelectorAll('.yt-search-panel-result')];
+    return { count: lis.length, activeIdx: lis.findIndex(l => l.classList.contains('active')) };
+  })()`;
+  await page.focus(".yt-search-panel-input");
+  await page.keyboard.press("ArrowDown");
+  let hl = await page.evaluate(activeSuggestion);
+  check("ArrowDown highlights the first suggestion", hl.activeIdx === 0, JSON.stringify(hl));
+  if (hl.count >= 2) {
+    await page.keyboard.press("ArrowDown");
+    hl = await page.evaluate(activeSuggestion);
+    check("ArrowDown moves the highlight down", hl.activeIdx === 1, JSON.stringify(hl));
+    await page.keyboard.press("ArrowUp");
+    hl = await page.evaluate(activeSuggestion);
+    check("ArrowUp moves the highlight back up", hl.activeIdx === 0, JSON.stringify(hl));
+  }
+
   // 3. Selecting the artist loads releases; default = Releases, role row hidden.
   const exact = page.locator(".yt-search-panel-result", { hasText: /^Daft Punk$/ });
   await ((await exact.count()) ? exact.first()
@@ -250,6 +272,38 @@ async function run(page) {
     !!s.filters && s.filters.chips.includes("Releases*"), JSON.stringify(s.filters));
   check("role sub-row hidden for single-role category",
     !!s.subfilters && s.subfilters.hidden, JSON.stringify(s.subfilters));
+
+  // 3b. Keyboard navigation of the list (mouse-free): ArrowDown from the artist
+  // box drops focus onto the first release row (ctx.releases.focusFirst), arrows
+  // rove between rows, and ArrowUp from the first row returns focus to the box.
+  // Ends on the box, leaving clean state for the text-filter step. (Avoids the
+  // last row, which would trigger auto-paging.)
+  const activeRow = `(() => {
+    const a = document.activeElement;
+    return {
+      isRow: !!a && a.classList.contains('yt-rel'),
+      isInput: !!a && a.classList.contains('yt-search-panel-input'),
+      idx: (a && a.classList.contains('yt-rel'))
+        ? [...document.querySelectorAll('.yt-rel')].indexOf(a) : -1,
+    };
+  })()`;
+  await page.focus(".yt-search-panel-input");
+  await page.keyboard.press("ArrowDown");
+  let nav = await page.evaluate(activeRow);
+  check("ArrowDown from the artist box focuses the first release row",
+    nav.isRow && nav.idx === 0, JSON.stringify(nav));
+  if (s.rowCount >= 2) {
+    await page.keyboard.press("ArrowDown");
+    nav = await page.evaluate(activeRow);
+    check("ArrowDown roves to the next row", nav.isRow && nav.idx === 1, JSON.stringify(nav));
+    await page.keyboard.press("ArrowUp");
+    nav = await page.evaluate(activeRow);
+    check("ArrowUp roves back to the previous row", nav.isRow && nav.idx === 0, JSON.stringify(nav));
+  }
+  await page.keyboard.press("ArrowUp");
+  nav = await page.evaluate(activeRow);
+  check("ArrowUp from the first row returns focus to the artist box",
+    nav.isInput, JSON.stringify(nav));
 
   // 4. Text filter narrows the loaded list to titles containing the query, and
   // Esc clears it back to the full list. Done on the default Releases list, and
@@ -362,6 +416,32 @@ async function run(page) {
   check("drag landed on the expected width",
     cs.width != null && Math.abs(cs.width - expected) <= 2,
     "got " + cs.width + " expected ~" + expected);
+
+  // Keyboard resize: focus the grip and nudge with arrows. ArrowLeft grows the
+  // panel, ArrowRight shrinks it, by RESIZE_STEP (16) px — or RESIZE_STEP_BIG
+  // (40) with Shift held — mirroring panel-chrome.js. The final width carries
+  // into the persistence check below.
+  await page.focus(".yt-search-panel-resize");
+  let w0 = cs.width;
+  await page.keyboard.press("ArrowRight");
+  await sleep(150);
+  cs = await page.evaluate(chromeState);
+  check("ArrowRight shrinks the panel one step",
+    cs.width === expectWidth(cs.innerWidth, w0 - 16), w0 + " -> " + cs.width);
+  w0 = cs.width;
+  await page.keyboard.press("ArrowLeft");
+  await sleep(150);
+  cs = await page.evaluate(chromeState);
+  check("ArrowLeft grows the panel one step",
+    cs.width === expectWidth(cs.innerWidth, w0 + 16), w0 + " -> " + cs.width);
+  w0 = cs.width;
+  await page.keyboard.down("Shift");
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.up("Shift");
+  await sleep(150);
+  cs = await page.evaluate(chromeState);
+  check("Shift+ArrowLeft grows the panel a bigger step",
+    cs.width === expectWidth(cs.innerWidth, w0 + 40), w0 + " -> " + cs.width);
 
   // Collapse, reload, and confirm both the resized width and the collapsed state
   // are restored — proving they were persisted to chrome.storage.local.
