@@ -13,10 +13,25 @@ A Manifest V3 Chrome extension that injects a side panel on `*.youtube.com`: sea
 ```bash
 npm install            # dev-only: playwright-core (no browser download)
 npm run test:e2e       # or: node test/e2e.js
+npm run build          # zip the extension into dist/eingang-<version>.zip
+npm run ship           # upload that zip to the Chrome Web Store + publish
+npm run release        # bump version (commit + tag), build, then ship
 ```
 
 - **Run/reload:** load unpacked from the repo root (folder with `manifest.json`) at `chrome://extensions` (Developer mode on). After editing any file — JS *or* CSS — reload (↻) the extension card, then reload the YouTube tab.
 - **Tests:** `test/e2e.js` is the only test: one script that launches headless Chrome with the unpacked extension and walks the whole panel journey, accumulating `check()` assertions (no framework, no per-test filter — edit the `run()` sequence to narrow it). Needs a real browser (`CHROME_BIN`, or `npx playwright install chromium`) and hits **live YouTube + Discogs**, so it's rate-limited (~25 req/min) and occasionally flaky.
+
+### Releasing
+
+`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). `npm run release [-- minor|major|x.y.z]` (default `patch`) bumps `package.json`, syncs `manifest.json` via npm's `version` hook (`scripts/sync-version.js`), commits + tags, builds, and ships. The git commit/tag stay local — push with `git push --follow-tags`.
+
+`ship.js` talks to the Chrome Web Store API directly. Set these env vars first (a Google OAuth client with the Web Store API enabled; `CWS_EXTENSION_ID` defaults to the published ID):
+
+```bash
+CWS_CLIENT_ID= CWS_CLIENT_SECRET= CWS_REFRESH_TOKEN= [CWS_EXTENSION_ID=] npm run ship
+```
+
+Publishing submits the version for Google's review; it does not go live instantly.
 
 ## Architecture
 

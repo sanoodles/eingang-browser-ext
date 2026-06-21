@@ -4,7 +4,11 @@
   "private": true,
   "description": "Chrome extension: browse a Discogs artist's releases on YouTube. (package.json is for dev tooling only; the extension itself loads from manifest.json.)",
   "scripts": {
-    "test:e2e": "node test/e2e.js"
+    "test:e2e": "node test/e2e.js",
+    "build": "node scripts/build.js",
+    "ship": "node scripts/ship.js",
+    "version": "node scripts/sync-version.js && git add manifest.json",
+    "release": "node scripts/release.js"
   },
   "devDependencies": {
     "playwright-core": "^1.49.0"
