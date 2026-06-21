@@ -15,8 +15,8 @@ Run the end-to-end test with `npm run test:e2e`. It drives headless Chrome again
 
 ## Releasing
 
-One command bumps the version, builds the zip, and publishes to the Chrome Web
-Store:
+One command bumps the version and builds the zip; you then upload that zip to the
+Chrome Web Store by hand.
 
 ```bash
 npm run release             # patch: 1.1.0 -> 1.1.1
@@ -28,45 +28,20 @@ It runs, in order:
 1. **`npm version`** — bumps `package.json`, syncs the same version into
    `manifest.json` (the `version` lifecycle hook), then commits and tags.
 2. **`npm run build`** — zips the extension into `dist/eingang-<version>.zip`.
-3. **`npm run ship`** — uploads that zip to the Chrome Web Store and publishes it.
 
-The commit and tag stay **local** — push them after a successful release:
+The commit and tag stay **local**. Then ship the build manually:
 
-```bash
-git push --follow-tags
-```
+1. Open the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+   and select the **Eingang** item.
+2. Under **Package**, choose **Upload new package** and pick the freshly built
+   `dist/eingang-<version>.zip`.
+3. Review the listing if needed, then **Submit for review**. Publishing submits
+   the new version for Google's review; it does not go live instantly.
+4. Once it's accepted, push the release commit and tag:
 
-Publishing **submits the new version for Google's review**; it does not go live
-instantly. You can also run the steps separately: `npm run build`, then
-`npm run ship`.
+   ```bash
+   git push --follow-tags
+   ```
 
-### Chrome Web Store credentials
-
-`npm run ship` (and so `npm run release`) needs a Google OAuth client authorized
-for the Chrome Web Store API, passed as environment variables:
-
-| Variable | What it is |
-| --- | --- |
-| `CWS_CLIENT_ID` | OAuth 2.0 client ID |
-| `CWS_CLIENT_SECRET` | OAuth 2.0 client secret |
-| `CWS_REFRESH_TOKEN` | Refresh token for the `chromewebstore` scope |
-| `CWS_EXTENSION_ID` | Optional; defaults to the published extension ID |
-
-To get them once:
-
-1. In the [Google Cloud Console](https://console.cloud.google.com/), create (or
-   reuse) a project and enable the **Chrome Web Store API**.
-2. Create an **OAuth 2.0 Client ID** of type *Desktop app* → this gives the client
-   ID and secret. On the OAuth consent screen, add your Google account as a test
-   user.
-3. Do a one-time consent to mint a refresh token for the scope
-   `https://www.googleapis.com/auth/chromewebstore` (the
-   [chrome-webstore-upload key guide](https://github.com/fregante/chrome-webstore-upload/blob/main/How%20to%20generate%20Google%20API%20keys.md)
-   walks through this).
-
-Keep the values out of git — e.g. export them from an untracked file and run:
-
-```bash
-set -a; source .env.release; set +a   # .env.release is gitignored
-npm run release
-```
+`npm run build` on its own (no version bump) re-zips the current version if you
+need to re-upload.
