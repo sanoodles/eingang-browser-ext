@@ -34,3 +34,7 @@ To run from source, turn on **Developer mode** at `chrome://extensions` and
 - **Permissions:** runs only on `*.youtube.com`; fetches from `api.discogs.com`;
   uses local `storage` for width and collapsed state.
 - **Privacy:** nothing is collected or sent to the developer. See [PRIVACY.md](PRIVACY.md).
+
+## Development
+
+Running from source, the test, and the release process are in [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -30,15 +30,7 @@ npm run release             # patch: 1.1.0 -> 1.1.1
 BUMP=minor npm run release  # 1.1.0 -> 1.2.0   (also BUMP=major, or BUMP=2.0.0)
 ```
 
-`release` commits + tags locally only — push with `git push --follow-tags`.
-
-`ship.js` talks to the Chrome Web Store API directly. Set these env vars first (a Google OAuth client with the Web Store API enabled; `CWS_EXTENSION_ID` defaults to the published ID):
-
-```bash
-CWS_CLIENT_ID= CWS_CLIENT_SECRET= CWS_REFRESH_TOKEN= [CWS_EXTENSION_ID=] npm run ship
-```
-
-Publishing submits the version for Google's review; it does not go live instantly.
+`release` commits + tags locally only — push with `git push --follow-tags`. `ship.js` talks to the Chrome Web Store API directly and needs `CWS_CLIENT_ID` / `CWS_CLIENT_SECRET` / `CWS_REFRESH_TOKEN` env vars (and optional `CWS_EXTENSION_ID`); publishing submits for Google's review, not instant. The human-facing how-to — including obtaining those credentials — lives in `CONTRIBUTING.md`; keep the two in sync.
 
 ## Architecture
 
