@@ -6,10 +6,9 @@
   "scripts": {
     "test:e2e": "node test/e2e.js",
     "build": "node scripts/build.js",
-    "ship": "node scripts/ship.js",
     "version": "node scripts/sync-version.js && git add manifest.json",
-    "release": "npm version ${BUMP:-patch} -m \"Bump version to %s\" && npm run build && npm run ship",
-    "postrelease": "echo 'Committed + tagged locally — push with: git push --follow-tags'"
+    "release": "npm version ${BUMP:-patch} -m \"Bump version to %s\" && npm run build",
+    "postrelease": "echo 'Built dist/eingang-<version>.zip — upload it at the Chrome Web Store dashboard, then: git push --follow-tags'"
   },
   "devDependencies": {
     "playwright-core": "^1.49.0"

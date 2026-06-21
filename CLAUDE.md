@@ -14,23 +14,25 @@ A Manifest V3 Chrome extension that injects a side panel on `*.youtube.com`: sea
 npm install            # dev-only: playwright-core (no browser download)
 npm run test:e2e       # or: node test/e2e.js
 npm run build          # zip the extension into dist/eingang-<version>.zip
-npm run ship           # upload that zip to the Chrome Web Store + publish
-npm run release        # bump version (commit + tag), build, then ship
+npm run release        # bump version (commit + tag), then build the zip
 ```
+
+Shipping is **manual**: upload the built `dist/eingang-<version>.zip` at the
+[Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole) and submit for review.
 
 - **Run/reload:** load unpacked from the repo root (folder with `manifest.json`) at `chrome://extensions` (Developer mode on). After editing any file — JS *or* CSS — reload (↻) the extension card, then reload the YouTube tab.
 - **Tests:** `test/e2e.js` is the only test: one script that launches headless Chrome with the unpacked extension and walks the whole panel journey, accumulating `check()` assertions (no framework, no per-test filter — edit the `run()` sequence to narrow it). Needs a real browser (`CHROME_BIN`, or `npx playwright install chromium`) and hits **live YouTube + Discogs**, so it's rate-limited (~25 req/min) and occasionally flaky.
 
 ### Releasing
 
-`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). The release pipeline lives in `package.json`'s scripts so it reads top-to-bottom: `release` is `npm version … && npm run build && npm run ship`, and npm's `version` hook (`scripts/sync-version.js`) syncs `manifest.json` during the bump. The bump type is the `BUMP` env var (default `patch`):
+`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). The release pipeline lives in `package.json`'s scripts so it reads top-to-bottom: `release` is `npm version … && npm run build`, and npm's `version` hook (`scripts/sync-version.js`) syncs `manifest.json` during the bump. The bump type is the `BUMP` env var (default `patch`):
 
 ```bash
 npm run release             # patch: 1.1.0 -> 1.1.1
 BUMP=minor npm run release  # 1.1.0 -> 1.2.0   (also BUMP=major, or BUMP=2.0.0)
 ```
 
-`release` commits + tags locally only — push with `git push --follow-tags`. `ship.js` talks to the Chrome Web Store API directly and needs `CWS_CLIENT_ID` / `CWS_CLIENT_SECRET` / `CWS_REFRESH_TOKEN` env vars (and optional `CWS_EXTENSION_ID`); publishing submits for Google's review, not instant. The human-facing how-to — including obtaining those credentials — lives in `CONTRIBUTING.md`; keep the two in sync.
+`release` commits + tags locally only and stops at the built zip — there's no automated upload. Ship by hand: upload `dist/eingang-<version>.zip` at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), submit for Google's review (not instant), then `git push --follow-tags`. The step-by-step how-to lives in `CONTRIBUTING.md`; keep the two in sync.
 
 ## Architecture
 
