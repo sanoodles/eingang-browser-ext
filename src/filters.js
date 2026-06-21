@@ -9,64 +9,44 @@
   // Discogs artist page. Credits is the catch-all for crediting roles (Remix,
   // Producer, Written-By, …) that aren't main, an appearance, or unofficial.
   const CATS = [
-    {
-      id: "releases",
-      label: "Releases",
-      test: function (r) {
-        return r === "Main";
-      },
-    },
+    { id: "releases", label: "Releases", test: (r) => r === "Main" },
     {
       id: "appearances",
       label: "Appearances",
-      test: function (r) {
-        return r === "Appearance" || r === "TrackAppearance";
-      },
+      test: (r) => r === "Appearance" || r === "TrackAppearance",
     },
-    {
-      id: "unofficial",
-      label: "Unofficial",
-      test: function (r) {
-        return r === "UnofficialRelease";
-      },
-    },
+    { id: "unofficial", label: "Unofficial", test: (r) => r === "UnofficialRelease" },
     {
       id: "credits",
       label: "Credits",
-      test: function (r) {
-        return (
-          r !== "Main" &&
-          r !== "Appearance" &&
-          r !== "TrackAppearance" &&
-          r !== "UnofficialRelease"
-        );
-      },
+      test: (r) =>
+        r !== "Main" &&
+        r !== "Appearance" &&
+        r !== "TrackAppearance" &&
+        r !== "UnofficialRelease",
     },
   ];
   const DEFAULT_ID = "releases";
 
+  /** @param {Ctx} ctx */
   YTSP.createFilters = function (ctx) {
     const bar = ctx.els.filters;
     let activeId = DEFAULT_ID;
     const buttons = {};
 
     function find(id) {
-      return (
-        CATS.filter(function (c) {
-          return c.id === id;
-        })[0] || CATS[0]
-      );
+      return CATS.find((c) => c.id === id) || CATS[0];
     }
 
     // Reflect the active chip: highlighted, selected, and the only one in the
     // Tab order (arrow keys move between the rest).
     function paint() {
-      CATS.forEach(function (c) {
+      for (const c of CATS) {
         const on = c.id === activeId;
         buttons[c.id].classList.toggle("active", on);
-        buttons[c.id].setAttribute("aria-selected", on ? "true" : "false");
+        buttons[c.id].setAttribute("aria-selected", String(on));
         buttons[c.id].tabIndex = on ? 0 : -1;
-      });
+      }
     }
 
     function choose(id, fire) {
@@ -79,16 +59,14 @@
       }
     }
 
-    CATS.forEach(function (c, i) {
+    CATS.forEach((c, i) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "yt-rel-filter";
       b.textContent = c.label;
       b.setAttribute("role", "tab");
-      b.addEventListener("click", function () {
-        choose(c.id);
-      });
-      b.addEventListener("keydown", function (e) {
+      b.addEventListener("click", () => choose(c.id));
+      b.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
         e.preventDefault();
         const dir = e.key === "ArrowRight" ? 1 : -1;
@@ -103,17 +81,11 @@
 
     return {
       // Does a release's role belong to the currently active category?
-      test: function (role) {
-        return find(activeId).test(role);
-      },
-      activeLabel: function () {
-        return find(activeId).label;
-      },
+      test: (role) => find(activeId).test(role),
+      activeLabel: () => find(activeId).label,
       // Back to the default category without firing a reload (the caller is
       // already (re)loading, e.g. on a new artist).
-      reset: function () {
-        choose(DEFAULT_ID, false);
-      },
+      reset: () => choose(DEFAULT_ID, false),
     };
   };
 })();

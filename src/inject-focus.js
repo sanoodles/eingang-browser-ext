@@ -35,8 +35,7 @@
   // a toolbar button, the search box, etc. YouTube drops focus to such an
   // element while it rebuilds the results list.
   function focusIsOnResult() {
-    const a = document.activeElement;
-    return !!(a && a.closest && a.closest(RESULT_ITEMS));
+    return !!document.activeElement?.closest?.(RESULT_ITEMS);
   }
 
   // Class that yt-results-focus.css turns into a focus ring. We move focus here
@@ -46,11 +45,16 @@
   // pressed another key. Tagging the card forces it on immediately.
   const KBD_FOCUS_CLASS = "yt-panel-kbd-focus";
 
+  // focusFirstResult polling (see its comment for why it polls rather than
+  // focusing once).
+  const POLL_MS = 150; // re-check focus this often after the search fires
+  const STABLE_MS = 1200; // first result unchanged + focused this long ⇒ done
+  const TIMEOUT_MS = 6000; // give up regrabbing focus after this
+
   function clearKbdFocusMark() {
-    const marked = document.getElementsByClassName(KBD_FOCUS_CLASS);
-    // Live collection — iterate from the end while removing.
-    for (let i = marked.length - 1; i >= 0; i--) {
-      marked[i].classList.remove(KBD_FOCUS_CLASS);
+    // Snapshot the live collection so removing the class doesn't shift it mid-loop.
+    for (const el of [...document.getElementsByClassName(KBD_FOCUS_CLASS)]) {
+      el.classList.remove(KBD_FOCUS_CLASS);
     }
   }
 
@@ -61,9 +65,8 @@
     if (!item) return;
     clearKbdFocusMark();
     item.classList.add(KBD_FOCUS_CLASS);
-    link.addEventListener("blur", function onBlur() {
-      link.removeEventListener("blur", onBlur);
-      item.classList.remove(KBD_FOCUS_CLASS);
+    link.addEventListener("blur", () => item.classList.remove(KBD_FOCUS_CLASS), {
+      once: true,
     });
   }
 
@@ -80,7 +83,7 @@
   function focusFirstResult(startHref) {
     if (pendingTimer) clearInterval(pendingTimer);
     clearKbdFocusMark(); // drop any ring left over from a previous search
-    const deadline = Date.now() + 6000;
+    const deadline = Date.now() + TIMEOUT_MS;
     let lastItem = null;
     let lastChange = Date.now();
 
@@ -106,17 +109,17 @@
           link.focus();
           markKbdFocus(link);
         }
-      } else if (Date.now() - lastChange > 1200) {
+      } else if (Date.now() - lastChange > STABLE_MS) {
         // First result stable and focus sitting on a result — we're done.
         done();
       }
     }
 
-    pendingTimer = setInterval(tick, 150);
+    pendingTimer = setInterval(tick, POLL_MS);
     tick();
   }
 
-  document.addEventListener("yt-search-panel-run", function () {
+  document.addEventListener("yt-search-panel-run", () => {
     const query = document.documentElement.getAttribute(
       "data-yt-search-panel-query"
     );
@@ -128,9 +131,7 @@
     } else {
       // Fall back to a normal navigation if YouTube's search box isn't present
       // (unexpected DOM) so search still works, just with a reload.
-      window.location.href =
-        "https://www.youtube.com/results?search_query=" +
-        encodeURIComponent(query);
+      window.location.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
     }
   });
 })();

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Manifest V3 Chrome extension that injects a side panel on `*.youtube.com`: search the Discogs API for an artist, list their releases, click one to drive YouTube's own search box (in-page, no reload) and focus the first result.
 
-**No build step, bundler, or transpiler** — source files load as-is. Code is plain ES5 IIFE modules (`(function () { "use strict"; ... })()`), no `import`/`export`; everything talks through globals. Match that style; keep files small (existing ones are ≤160 lines).
+**No build step, bundler, or transpiler** — source files load as-is. Code is modern (ES2022) JS wrapped in IIFE modules (`(function () { "use strict"; ... })()`), no `import`/`export`; everything talks through globals. Use modern syntax freely (arrow callbacks, template literals, destructuring, `async`/`await`, optional chaining/nullish), but keep named helper functions as `function` declarations so the modules' factory order stays free via hoisting. Match that style; keep files small (existing ones are ≤185 lines).
 
 ## Commands
 
@@ -31,7 +31,7 @@ The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` 
 
 ### `YTSP` factory/`ctx` wiring
 
-`config.js` creates `window.YTSP` and holds tunable constants (debounce, page sizes, Discogs URLs, `RELEASES_FILL_MIN`). Each module registers a factory (`YTSP.createReleases`, …). `panel.js` (**loaded last**) builds the DOM, gathers elements into `els`, builds `ctx = { els, cfg, runYouTubeSearch }`, then calls every factory and stores the result back on `ctx` (`ctx.releases`, …). Modules reach each other lazily via `ctx`, so factory order is free — but manifest `js` order *is* load order, and `panel.js` must stay last. **Adding a module:** register it in `manifest.json` before `panel.js`, then create its element and instantiate it into `ctx` in `panel.js`.
+`config.js` creates `window.YTSP` and holds tunable constants (debounce, page sizes, Discogs URLs, `RELEASES_FILL_MIN`), a couple of shared artist-name helpers (`cleanArtistName`, `isVarious`), and the JSDoc typedefs for the shared contract (`Cfg`, `Els`, `Release`, `Ctx`). Each module registers a factory (`YTSP.createReleases`, …) and annotates it `@param {Ctx} ctx` — since there's no `import`/`export`, the typedefs are ambient/global and give editor autocomplete across files for free. `panel.js` (**loaded last**) builds the DOM, gathers elements into `els`, builds `ctx = { els, cfg, runYouTubeSearch }`, then calls every factory and stores the result back on `ctx` (`ctx.releases`, …). Modules reach each other lazily via `ctx`, so factory order is free — but manifest `js` order *is* load order, and `panel.js` must stay last. **Adding a module:** register it in `manifest.json` before `panel.js`, then create its element and instantiate it into `ctx` in `panel.js` (and add it to the `Ctx` typedef in `config.js`).
 
 ### Releases: one cache, filters narrow it, paging fills it
 
@@ -39,7 +39,7 @@ The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` 
 
 ### CSS
 
-`layout.css` reflows `<body>` into two columns (YouTube + 400px panel) and wins a z-index war: the panel sits at `2147483646`, and YouTube's overlays (`tp-yt-iron-dropdown`, `tp-yt-paper-dialog`) + masthead are nudged above it. `panel.css` theme variables follow YouTube's light/dark mode (`html[dark]`).
+`layout.css` reflows `<body>` into two columns (YouTube + the panel) and wins a z-index war: the panel sits at `2147483646`, and YouTube's overlays (`tp-yt-iron-dropdown`, `tp-yt-paper-dialog`) + masthead are nudged above it. The panel's width is the `--yt-panel-width` custom property on `<html>` (default 400px), which both the panel's flex-basis and the masthead's right inset read; `panel-chrome.js` rewrites it as the user drags the panel's left edge, and toggles an `ytsp-collapsed` class on `<html>` to hide the panel (revealing a floating reopen tab). Width and collapsed state persist in `chrome.storage.local`. `panel.css` theme variables follow YouTube's light/dark mode (`html[dark]`).
 
 ### Discogs API
 
@@ -49,8 +49,9 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 
 | File | Role |
 | --- | --- |
-| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches. `js` order is load order. |
-| `src/config.js` | Shared constants and the `YTSP` namespace object. |
+| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches, `storage` permission. `js` order is load order. |
+| `src/config.js` | Shared constants, JSDoc typedefs (`Cfg`/`Els`/`Release`/`Ctx`), artist-name helpers (`cleanArtistName`/`isVarious`), and the `YTSP` namespace object. |
+| `src/panel-chrome.js` | Collapse/expand toggle + draggable left edge to resize the panel; persists width & collapsed state. |
 | `src/roving.js` | Generic roving-tabindex keyboard navigation for a list. |
 | `src/paging.js` | Auto-paging (IntersectionObserver) + loading row for the releases list. |
 | `src/release-row.js` | Renders one release row. |

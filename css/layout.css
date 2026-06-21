@@ -20,12 +20,40 @@ ytd-app {
 }
 
 /* YouTube's masthead (top bar) is position:fixed across the whole viewport, so it ignores
-   the column layout — pull its right edge in by 400px so it doesn't slide under the panel. */
+   the column layout — pull its right edge in by the panel width so it doesn't slide under
+   the panel. The width follows --yt-panel-width (set by panel-chrome.js as the user drags),
+   defaulting to 400px before any custom value is applied. */
 ytd-app #masthead-container,
 #masthead-container {
   left: 0 !important;
-  right: 400px !important;
+  right: var(--yt-panel-width, 400px) !important;
   width: auto !important;
+}
+
+/* Collapsed: the panel is hidden, so YouTube reclaims the full width and the
+   floating reopen tab takes over (panel-chrome.js toggles the class on <html>). */
+html.ytsp-collapsed #masthead-container {
+  right: 0 !important;
+}
+
+html.ytsp-collapsed #yt-search-panel-ext {
+  display: none !important;
+}
+
+/* While dragging the edge, a full-viewport overlay (panel-chrome.js) sits just
+   below the panel to capture the mouse over YouTube's player iframe, and the
+   whole page shows the resize cursor with selection suppressed. */
+.ytsp-resize-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  cursor: col-resize;
+}
+
+html.ytsp-resizing,
+html.ytsp-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
 }
 
 /* YouTube opens its masthead menus (account, notifications, the "⋮" menus) and
@@ -46,6 +74,8 @@ tp-yt-paper-dialog {
    `html:has(:fullscreen)` covers the full-screen element being elsewhere in the
    page (the player or ytd-app). */
 :fullscreen #yt-search-panel-ext,
-html:has(:fullscreen) #yt-search-panel-ext {
+:fullscreen #yt-search-panel-reopen,
+html:has(:fullscreen) #yt-search-panel-ext,
+html:has(:fullscreen) #yt-search-panel-reopen {
   display: none !important;
 }

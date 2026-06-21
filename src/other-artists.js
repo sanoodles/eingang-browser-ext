@@ -8,17 +8,15 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  /** @param {Ctx} ctx */
   YTSP.createOtherArtists = function (ctx) {
-    const els = ctx.els;
-    const others = els.others;
-    const otherHeading = els.otherHeading;
+    const { els } = ctx;
+    const { others, otherHeading } = els;
 
     const roving = YTSP.createRoving({
       container: others,
       rowClass: "yt-other",
-      toInput: function () {
-        els.input.focus();
-      },
+      toInput: () => els.input.focus(),
     });
 
     function selectOtherArtist(name) {
@@ -38,10 +36,10 @@
         others.appendChild(li);
         return;
       }
-      names.forEach(function (name) {
+      names.forEach((name, i) => {
         const li = document.createElement("li");
         li.className = "yt-other";
-        li.tabIndex = -1; // roving; first row is promoted to 0 below
+        li.tabIndex = i === 0 ? 0 : -1; // roving; first row is the one in the Tab order
         li.setAttribute("role", "button");
         li.setAttribute("aria-label", name);
 
@@ -50,18 +48,11 @@
         nameEl.textContent = name;
         li.appendChild(nameEl);
 
-        li.addEventListener("click", function () {
-          selectOtherArtist(name);
-        });
-        roving.attach(li, function () {
-          selectOtherArtist(name);
-        });
+        li.addEventListener("click", () => selectOtherArtist(name));
+        roving.attach(li, () => selectOtherArtist(name));
 
         others.appendChild(li);
       });
-      // Make the first artist the one row in the Tab order.
-      const firstRow = others.querySelector(".yt-other");
-      if (firstRow) firstRow.tabIndex = 0;
     }
 
     // Idle state (no release selected yet); the section stays on screen.
@@ -71,29 +62,20 @@
     }
 
     function showOtherArtists(rel) {
-      const label = "“" + (rel.title || "") + "”"; // “title”
-      const artistName = ctx.releases.artistName();
+      const label = `“${rel.title || ""}”`; // “title”
+      const artistName = YTSP.cleanArtistName(ctx.releases.artistName());
       // Split on " / " — the spaces matter, so names like "AC/DC" stay intact —
-      // then drop the artist we're browsing and the "Various" placeholder.
+      // then clean each name and drop the artist we're browsing plus "Various".
       const names = (rel.artist || "")
         .split(" / ")
-        .map(function (s) {
-          return s.trim();
-        })
-        .filter(function (name) {
-          return name && name !== "Various" && name !== artistName;
-        })
-        .filter(function (name, i, arr) {
-          return arr.indexOf(name) === i; // de-dup
-        });
+        .map((s) => YTSP.cleanArtistName(s))
+        .filter((name) => name && !YTSP.isVarious(name) && name !== artistName)
+        .filter((name, i, arr) => arr.indexOf(name) === i); // de-dup
 
-      otherHeading.textContent = "Other artists on " + label;
+      otherHeading.textContent = `Other artists on ${label}`;
       renderOtherList(names, "No other artists on this release.");
     }
 
-    return {
-      clearOtherArtists: clearOtherArtists,
-      showOtherArtists: showOtherArtists,
-    };
+    return { clearOtherArtists, showOtherArtists };
   };
 })();

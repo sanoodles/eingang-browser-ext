@@ -6,23 +6,24 @@
   "use strict";
   const YTSP = (window.YTSP = window.YTSP || {});
 
+  /** @param {Ctx} ctx */
   YTSP.createSongFilter = function (ctx) {
-    const els = ctx.els;
+    const { els } = ctx;
     const input = els.songFilter;
     let raw = ""; // trimmed query, kept verbatim for the status line
     let needle = ""; // lowercased query used for matching
 
-    input.addEventListener("input", function () {
+    input.addEventListener("input", () => {
       raw = input.value.trim();
       needle = raw.toLowerCase();
       ctx.releases.setFilter();
     });
 
-    input.addEventListener("keydown", function (event) {
+    input.addEventListener("keydown", (event) => {
       // ArrowDown drops focus into the releases list, like the artist box does.
       if (event.key === "ArrowDown" && els.releases.children.length) {
         event.preventDefault();
-        ctx.releases.rove(ctx.releases.firstTabbable());
+        ctx.releases.focusFirst();
       } else if (event.key === "Escape" && needle) {
         // Clear the filter (and restore the full list) without leaving the box.
         event.preventDefault();
@@ -35,15 +36,10 @@
 
     return {
       // Does a release title pass the current filter? An empty filter passes all.
-      test: function (title) {
-        if (!needle) return true;
-        return (title || "").toLowerCase().indexOf(needle) >= 0;
-      },
+      test: (title) => !needle || (title || "").toLowerCase().includes(needle),
       // The active query (verbatim), for status messages; "" when inactive.
-      query: function () {
-        return raw;
-      },
-      reset: function () {
+      query: () => raw,
+      reset: () => {
         raw = "";
         needle = "";
         input.value = "";

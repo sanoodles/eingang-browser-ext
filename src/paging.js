@@ -7,9 +7,13 @@
 
   const YTSP = (window.YTSP = window.YTSP || {});
 
-  // opts: { container, toInput, canLoadMore, loadMore }
-  //   canLoadMore() -> bool (more pages exist and none is in flight)
-  //   loadMore()    -> fetch the next page
+  /**
+   * @param {Object} opts
+   * @param {HTMLElement} opts.container the scrollable <ul> of release rows
+   * @param {() => void} opts.toInput moves focus back up into the search box
+   * @param {() => boolean} opts.canLoadMore more pages exist and none is in flight
+   * @param {() => void} opts.loadMore fetch the next page
+   */
   YTSP.createPaging = function (opts) {
     const container = opts.container;
     let observedLast = null;
@@ -19,7 +23,7 @@
     // keyboard nav must look past it.
     function lastRow() {
       const rows = container.querySelectorAll(".yt-rel");
-      return rows.length ? rows[rows.length - 1] : null;
+      return rows[rows.length - 1] ?? null;
     }
 
     function maybeLoadMore() {
@@ -27,12 +31,12 @@
     }
 
     const roving = YTSP.createRoving({
-      container: container,
+      container,
       rowClass: "yt-rel",
       toInput: opts.toInput,
       // Focusing the last loaded row pulls in the next page — the keyboard
       // equivalent of scrolling to the bottom.
-      onRove: function (li) {
+      onRove: (li) => {
         if (li === lastRow()) maybeLoadMore();
       },
     });
@@ -57,14 +61,8 @@
     }
 
     const io = new IntersectionObserver(
-      function (entries) {
-        if (
-          entries.some(function (e) {
-            return e.isIntersecting;
-          })
-        ) {
-          maybeLoadMore();
-        }
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) maybeLoadMore();
       },
       { root: container, rootMargin: "150px" }
     );
@@ -95,9 +93,9 @@
     return {
       rove: roving.rove,
       attach: roving.attach,
-      showLoadingRow: showLoadingRow,
-      observeLast: observeLast,
-      firstTabbable: firstTabbable,
+      showLoadingRow,
+      observeLast,
+      firstTabbable,
     };
   };
 })();
