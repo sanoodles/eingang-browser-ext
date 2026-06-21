@@ -25,9 +25,6 @@ It's fully keyboard-navigable: arrows move through suggestions, lists, and chips
 Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/eingang-discogs-releases/panappbiijcinhelkocoealgmaoehiek),
 then open or reload a `youtube.com` tab — the panel appears on the right.
 
-To run from source, turn on **Developer mode** at `chrome://extensions` and
-**Load unpacked** → this folder (the one with `manifest.json`). Nothing to build.
-
 ## Notes
 
 - **Discogs API** requests are unauthenticated and rate-limited (~25/minute).
