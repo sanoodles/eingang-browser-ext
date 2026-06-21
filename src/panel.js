@@ -72,7 +72,14 @@
     suggestions.setAttribute("role", "listbox");
     suggestions.hidden = true;
 
+    // Spinner overlaid at the input's right edge while a lookup is in flight.
+    const spinner = document.createElement("div");
+    spinner.className = "yt-search-panel-spinner";
+    spinner.setAttribute("aria-hidden", "true");
+    spinner.hidden = true;
+
     box.appendChild(input);
+    box.appendChild(spinner);
     box.appendChild(suggestions);
 
     // Releases area: category filter chips, a status line, and a scrollable,
@@ -152,7 +159,7 @@
 
     // Shared context; modules reference each other lazily via ctx, so creation
     // order doesn't matter as long as all are set before any event fires.
-    const els = { input, suggestions, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
+    const els = { input, suggestions, spinner, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
     const ctx = { els: els, cfg: cfg, runYouTubeSearch: runYouTubeSearch };
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);

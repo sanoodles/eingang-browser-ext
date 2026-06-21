@@ -225,8 +225,41 @@ html[dark] #yt-search-panel-reopen:hover {
   border-color: var(--yt-panel-accent);
 }
 
+/* Keep typed text clear of the spinner while a lookup is in flight. */
+#yt-search-panel-ext .yt-search-panel-input[aria-busy="true"] {
+  padding-right: 36px;
+}
+
 #yt-search-panel-ext .yt-search-panel-input::placeholder {
   color: var(--yt-panel-text-2);
+}
+
+/* Spinner overlaid at the input's right edge while an artist lookup is running. */
+#yt-search-panel-ext .yt-search-panel-spinner {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  margin-top: -8px;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid var(--yt-panel-border);
+  border-top-color: var(--yt-panel-accent);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: yt-search-panel-spin 0.7s linear infinite;
+}
+
+@keyframes yt-search-panel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #yt-search-panel-ext .yt-search-panel-spinner {
+    animation-duration: 2s;
+  }
 }
 
 /* Suggestion dropdown: overlays below the input, themed, scrollable. */

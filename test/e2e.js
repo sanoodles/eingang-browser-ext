@@ -1,5 +1,6 @@
 // End-to-end test of the full panel journey on real YouTube:
-//   typeahead search → artist select → release list (default Releases filter)
+//   typeahead search (spinner while loading) → artist select
+//   → release list (default Releases filter)
 //   → text filter (narrow by title, then clear) → category filter (Credits)
 //   → role sub-filter (Remixes) → feedback link present
 //   → activate a release (drives YouTube's search + fills "Other artists")
@@ -209,8 +210,17 @@ async function run(page) {
   check("panel injected", await waitOk(() =>
     page.waitForSelector("#yt-search-panel-ext", { timeout: 15000 })));
 
-  // 2. Typeahead returns suggestions including the artist.
+  // 2. Typeahead returns suggestions including the artist. A spinner shows over
+  // the input (and aria-busy flips) while the lookup is in flight, then clears
+  // once results render. The 500ms debounce keeps the loading window observable.
   await page.fill(".yt-search-panel-input", "Daft Punk");
+  const spinnerShown = await waitOk(() => page.waitForFunction(`(() => {
+    const sp = document.querySelector('.yt-search-panel-spinner');
+    const inp = document.querySelector('.yt-search-panel-input');
+    return sp && !sp.hidden && inp.getAttribute('aria-busy') === 'true';
+  })()`, { timeout: 5000 }));
+  check("typeahead shows a spinner while searching", spinnerShown);
+
   const gotSuggestions = await waitOk(() =>
     page.waitForSelector(".yt-search-panel-result", { timeout: 15000 }));
   const suggestions = gotSuggestions
@@ -219,6 +229,14 @@ async function run(page) {
     : [];
   check("typeahead suggests the artist", suggestions.includes("Daft Punk"),
     JSON.stringify(suggestions));
+
+  // The spinner clears once the suggestions land.
+  const spinnerCleared = await waitOk(() => page.waitForFunction(`(() => {
+    const sp = document.querySelector('.yt-search-panel-spinner');
+    const inp = document.querySelector('.yt-search-panel-input');
+    return sp && sp.hidden && inp.getAttribute('aria-busy') === 'false';
+  })()`, { timeout: 15000 }));
+  check("spinner clears once suggestions arrive", spinnerCleared);
 
   // 3. Selecting the artist loads releases; default = Releases, role row hidden.
   const exact = page.locator(".yt-search-panel-result", { hasText: /^Daft Punk$/ });

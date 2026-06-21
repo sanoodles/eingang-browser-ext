@@ -9,6 +9,7 @@
     const cfg = ctx.cfg;
     const input = els.input;
     const suggestions = els.suggestions;
+    const spinner = els.spinner;
 
     let debounceTimer = null;
     let searchController = null; // AbortController for the in-flight fetch
@@ -16,7 +17,14 @@
     let items = []; // current suggestions: { id, name }
     let highlight = -1;
 
+    // Toggle the loading spinner overlaying the input's right edge.
+    function setLoading(on) {
+      spinner.hidden = !on;
+      input.setAttribute("aria-busy", on ? "true" : "false");
+    }
+
     function closeSuggestions() {
+      setLoading(false);
       suggestions.hidden = true;
       suggestions.replaceChildren();
       items = [];
@@ -59,9 +67,11 @@
       highlight = -1;
       suggestions.hidden = false;
       input.setAttribute("aria-expanded", "true");
+      setLoading(false);
     }
 
     function searchArtists(query) {
+      setLoading(true);
       if (searchController) searchController.abort();
       searchController = new AbortController();
       const seq = ++searchSeq;
@@ -118,6 +128,7 @@
         closeSuggestions();
         return;
       }
+      setLoading(true); // immediate feedback through the debounce wait
       debounceTimer = setTimeout(function () {
         searchArtists(query);
       }, cfg.DEBOUNCE_MS);
