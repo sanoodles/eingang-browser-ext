@@ -16,30 +16,24 @@
       last *trusted* input event; our search is driven by synthetic events, so
       the ring would otherwise stay dark until the user pressed another key. The
       explicit class forces it on immediately; the script removes it on blur. */
-ytd-video-renderer:has(:focus-visible),
-ytd-playlist-renderer:has(:focus-visible),
-ytd-channel-renderer:has(:focus-visible),
-ytd-radio-renderer:has(:focus-visible),
-ytd-movie-renderer:has(:focus-visible),
-ytd-compact-video-renderer:has(:focus-visible),
-ytd-rich-item-renderer:has(:focus-visible),
-yt-lockup-view-model:has(:focus-visible),
+:is(
+  ytd-video-renderer,
+  ytd-playlist-renderer,
+  ytd-channel-renderer,
+  ytd-radio-renderer,
+  ytd-movie-renderer,
+  ytd-compact-video-renderer,
+  ytd-rich-item-renderer,
+  yt-lockup-view-model
+):has(:focus-visible),
 .yt-panel-kbd-focus {
   outline: 3px solid #065fd4;
   outline-offset: -3px;
   border-radius: 12px;
   background: rgba(8, 95, 212, 0.08);
-}
 
-html[dark] ytd-video-renderer:has(:focus-visible),
-html[dark] ytd-playlist-renderer:has(:focus-visible),
-html[dark] ytd-channel-renderer:has(:focus-visible),
-html[dark] ytd-radio-renderer:has(:focus-visible),
-html[dark] ytd-movie-renderer:has(:focus-visible),
-html[dark] ytd-compact-video-renderer:has(:focus-visible),
-html[dark] ytd-rich-item-renderer:has(:focus-visible),
-html[dark] yt-lockup-view-model:has(:focus-visible),
-html[dark] .yt-panel-kbd-focus {
-  outline-color: #3ea6ff;
-  background: rgba(62, 166, 255, 0.12);
+  html[dark] & {
+    outline-color: #3ea6ff;
+    background: rgba(62, 166, 255, 0.12);
+  }
 }

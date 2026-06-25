@@ -73,9 +73,7 @@ tp-yt-paper-dialog {
    covers the panel being inside the full-screen element (html/body), and
    `html:has(:fullscreen)` covers the full-screen element being elsewhere in the
    page (the player or ytd-app). */
-:fullscreen #yt-search-panel-ext,
-:fullscreen #yt-search-panel-reopen,
-html:has(:fullscreen) #yt-search-panel-ext,
-html:has(:fullscreen) #yt-search-panel-reopen {
+:is(:fullscreen, html:has(:fullscreen))
+  :is(#yt-search-panel-ext, #yt-search-panel-reopen) {
   display: none !important;
 }

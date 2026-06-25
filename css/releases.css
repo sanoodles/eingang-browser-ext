@@ -1,240 +1,240 @@
-/* Category filter chips above the releases list (Discogs-style). */
-#yt-search-panel-ext .yt-rel-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 0 0 auto;
-}
+#yt-search-panel-ext {
+  /* Category filter chips above the releases list (Discogs-style). */
+  .yt-rel-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
 
-#yt-search-panel-ext .yt-rel-filter {
-  padding: 5px 12px;
-  border: 1px solid var(--yt-panel-border);
-  border-radius: 16px;
-  background: transparent;
-  color: var(--yt-panel-text-2);
-  font-family: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
+  .yt-rel-filter {
+    padding: 5px 12px;
+    border: 1px solid var(--yt-panel-border);
+    border-radius: 16px;
+    background: transparent;
+    color: var(--yt-panel-text-2);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
 
-#yt-search-panel-ext .yt-rel-filter:hover {
-  background: var(--yt-panel-hover);
-  color: var(--yt-panel-text);
-}
+    &:hover {
+      background: var(--yt-panel-hover);
+      color: var(--yt-panel-text);
+    }
 
-#yt-search-panel-ext .yt-rel-filter.active {
-  background: var(--yt-panel-accent);
-  border-color: var(--yt-panel-accent);
-  color: #ffffff;
-}
+    &.active {
+      background: var(--yt-panel-accent);
+      border-color: var(--yt-panel-accent);
+      color: #ffffff;
 
-html[dark] #yt-search-panel-ext .yt-rel-filter.active {
-  color: #0f0f0f; /* dark theme's accent is light blue — needs dark text */
-}
+      html[dark] & {
+        color: #0f0f0f; /* dark theme's accent is light blue — needs dark text */
+      }
+    }
 
-#yt-search-panel-ext .yt-rel-filter:focus-visible {
-  outline: 2px solid var(--yt-panel-accent);
-  outline-offset: 2px;
-}
+    &:focus-visible {
+      outline: 2px solid var(--yt-panel-accent);
+      outline-offset: 2px;
+    }
+  }
 
-/* Role sub-filter chips: a lighter, secondary row under the category chips. */
-#yt-search-panel-ext .yt-rel-subfilters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 0 0 auto;
-}
+  /* Role sub-filter chips: a lighter, secondary row under the category chips. */
+  .yt-rel-subfilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
 
-#yt-search-panel-ext .yt-rel-subfilter {
-  padding: 3px 10px;
-  border: 1px solid var(--yt-panel-border);
-  border-radius: 14px;
-  background: transparent;
-  color: var(--yt-panel-text-2);
-  font-family: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
+  .yt-rel-subfilter {
+    padding: 3px 10px;
+    border: 1px solid var(--yt-panel-border);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--yt-panel-text-2);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
 
-#yt-search-panel-ext .yt-rel-subfilter:hover {
-  background: var(--yt-panel-hover);
-  color: var(--yt-panel-text);
-}
+    &:hover {
+      background: var(--yt-panel-hover);
+      color: var(--yt-panel-text);
+    }
 
-#yt-search-panel-ext .yt-rel-subfilter.active {
-  border-color: var(--yt-panel-accent);
-  color: var(--yt-panel-accent);
-  font-weight: 500;
-}
+    &.active {
+      border-color: var(--yt-panel-accent);
+      color: var(--yt-panel-accent);
+      font-weight: 500;
+    }
 
-#yt-search-panel-ext .yt-rel-subfilter:focus-visible {
-  outline: 2px solid var(--yt-panel-accent);
-  outline-offset: 2px;
-}
+    &:focus-visible {
+      outline: 2px solid var(--yt-panel-accent);
+      outline-offset: 2px;
+    }
+  }
 
-/* Text filter that narrows the loaded releases list as you type. */
-#yt-search-panel-ext .yt-rel-filter-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 6px 12px;
-  border: 1px solid var(--yt-panel-border);
-  border-radius: 16px;
-  background: var(--yt-panel-input-bg);
-  color: var(--yt-panel-text);
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-  flex: 0 0 auto;
-}
+  /* Text filter that narrows the loaded releases list as you type. */
+  .yt-rel-filter-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid var(--yt-panel-border);
+    border-radius: 16px;
+    background: var(--yt-panel-input-bg);
+    color: var(--yt-panel-text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    flex: 0 0 auto;
 
-#yt-search-panel-ext .yt-rel-filter-input:focus {
-  border-color: var(--yt-panel-accent);
-}
+    &:focus {
+      border-color: var(--yt-panel-accent);
+    }
 
-#yt-search-panel-ext .yt-rel-filter-input::placeholder {
-  color: var(--yt-panel-text-2);
-}
+    &::placeholder {
+      color: var(--yt-panel-text-2);
+    }
+  }
 
-/* Releases area below the input. */
-#yt-search-panel-ext .yt-search-panel-status {
-  color: var(--yt-panel-text-2);
-  font-size: 13px;
-}
+  /* Releases area below the input. */
+  .yt-search-panel-status {
+    color: var(--yt-panel-text-2);
+    font-size: 13px;
+  }
 
-#yt-search-panel-ext .yt-search-panel-releases {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  /* Take the remaining panel height and scroll within it. min-height:0 lets a
-     flex child actually shrink so overflow scrolling works. */
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+  .yt-search-panel-releases {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /* Take the remaining panel height and scroll within it. min-height:0 lets a
+       flex child actually shrink so overflow scrolling works. */
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-#yt-search-panel-ext .yt-rel {
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
+  .yt-rel {
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
 
-#yt-search-panel-ext .yt-rel:hover {
-  background: var(--yt-panel-hover);
-}
+    &:hover {
+      background: var(--yt-panel-hover);
+    }
 
-#yt-search-panel-ext .yt-rel:focus,
-#yt-search-panel-ext .yt-rel:focus-visible {
-  background: var(--yt-panel-focus-bg);
-  outline: 2px solid var(--yt-panel-accent);
-  outline-offset: -2px;
-}
+    &:focus,
+    &:focus-visible {
+      background: var(--yt-panel-focus-bg);
+      outline: 2px solid var(--yt-panel-accent);
+      outline-offset: -2px;
+    }
+  }
 
-#yt-search-panel-ext .yt-rel-main {
-  min-width: 0;
-}
+  .yt-rel-main {
+    min-width: 0;
+  }
 
-#yt-search-panel-ext .yt-rel-title {
-  color: var(--yt-panel-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .yt-rel-title {
+    color: var(--yt-panel-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-#yt-search-panel-ext .yt-rel-meta {
-  color: var(--yt-panel-text-2);
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .yt-rel-meta {
+    color: var(--yt-panel-text-2);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-/* Inline "loading more…" row at the bottom of the release list. */
-#yt-search-panel-ext .yt-rel-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  color: var(--yt-panel-text-2);
-  font-size: 13px;
-}
+  /* Inline "loading more…" row at the bottom of the release list. */
+  .yt-rel-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    color: var(--yt-panel-text-2);
+    font-size: 13px;
+  }
 
-#yt-search-panel-ext .yt-rel-spinner {
-  flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--yt-panel-border);
-  border-top-color: var(--yt-panel-accent);
-  border-radius: 50%;
-  animation: yt-rel-spin 0.7s linear infinite;
+  .yt-rel-spinner {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--yt-panel-border);
+    border-top-color: var(--yt-panel-accent);
+    border-radius: 50%;
+    animation: yt-rel-spin 0.7s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation-duration: 2s;
+    }
+  }
+
+  /* "Other artists on this release" section, below the releases list. */
+  .yt-search-panel-subheading {
+    color: var(--yt-panel-text);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 4px;
+    border-top: 1px solid var(--yt-panel-border);
+    padding-top: 10px;
+  }
+
+  .yt-search-panel-others {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 0 0 auto;
+    /* Always reserve at least 200px; scroll if the list is longer. */
+    min-height: 200px;
+    max-height: 40vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .yt-other {
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--yt-panel-hover);
+    }
+
+    &:focus,
+    &:focus-visible {
+      background: var(--yt-panel-focus-bg);
+      outline: 2px solid var(--yt-panel-accent);
+      outline-offset: -2px;
+    }
+  }
+
+  .yt-other-empty {
+    padding: 6px 10px;
+    color: var(--yt-panel-text-2);
+    font-style: italic;
+  }
+
+  .yt-other-name {
+    color: var(--yt-panel-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 @keyframes yt-rel-spin {
   to {
     transform: rotate(360deg);
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #yt-search-panel-ext .yt-rel-spinner {
-    animation-duration: 2s;
-  }
-}
-
-/* "Other artists on this release" section, below the releases list. */
-#yt-search-panel-ext .yt-search-panel-subheading {
-  color: var(--yt-panel-text);
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 4px;
-  border-top: 1px solid var(--yt-panel-border);
-  padding-top: 10px;
-}
-
-#yt-search-panel-ext .yt-search-panel-others {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  flex: 0 0 auto;
-  /* Always reserve at least 200px; scroll if the list is longer. */
-  min-height: 200px;
-  max-height: 40vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-#yt-search-panel-ext .yt-other {
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-#yt-search-panel-ext .yt-other:hover {
-  background: var(--yt-panel-hover);
-}
-
-#yt-search-panel-ext .yt-other:focus,
-#yt-search-panel-ext .yt-other:focus-visible {
-  background: var(--yt-panel-focus-bg);
-  outline: 2px solid var(--yt-panel-accent);
-  outline-offset: -2px;
-}
-
-#yt-search-panel-ext .yt-other-empty {
-  padding: 6px 10px;
-  color: var(--yt-panel-text-2);
-  font-style: italic;
-}
-
-#yt-search-panel-ext .yt-other-name {
-  color: var(--yt-panel-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
