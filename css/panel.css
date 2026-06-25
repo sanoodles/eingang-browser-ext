@@ -5,6 +5,7 @@
   --yt-panel-bg: #ffffff;
   --yt-panel-surface: #ffffff; /* dropdown / load-more background */
   --yt-panel-input-bg: #ffffff;
+  --yt-panel-input-border: #949494; /* 3:1 vs the panel bg; the input fill matches it, so the border is the field's only boundary (WCAG 1.4.11) */
   --yt-panel-text: #0f0f0f;
   --yt-panel-text-2: #606060; /* secondary: meta, status, placeholder, empty state */
   --yt-panel-border: #cccccc;
@@ -44,12 +45,13 @@
     --yt-panel-bg: #0f0f0f;
     --yt-panel-surface: #212121;
     --yt-panel-input-bg: #121212;
+    --yt-panel-input-border: #616161;
     --yt-panel-text: #ffffff;
     --yt-panel-text-2: #909090;
     --yt-panel-border: #303030;
     --yt-panel-hover: #1d1d1d;
     --yt-panel-hover-2: #383838;
-    --yt-panel-focus-bg: #263238;
+    --yt-panel-focus-bg: #1f2b31; /* dark selection bg, dimmed so 12px meta text clears AA (4.5:1) */
     --yt-panel-accent: #3ea6ff;
     --yt-panel-shadow: rgba(0, 0, 0, 0.5);
   }
@@ -157,7 +159,7 @@
     box-sizing: border-box;
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--yt-panel-border);
+    border: 1px solid var(--yt-panel-input-border);
     border-radius: 18px;
     background: var(--yt-panel-input-bg);
     color: var(--yt-panel-text);
