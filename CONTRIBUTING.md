@@ -19,14 +19,24 @@ One command bumps the version and builds the zip; you then upload that zip to th
 Chrome Web Store by hand.
 
 ```bash
-npm run release             # patch: 1.1.0 -> 1.1.1
-BUMP=minor npm run release  # 1.1.0 -> 1.2.0   (also BUMP=major, or BUMP=2.0.0)
+npm run release             # bump inferred from commits since the last tag
+BUMP=minor npm run release  # force it (also BUMP=major, BUMP=patch, or BUMP=2.0.0)
 ```
 
-It runs, in order:
+The bump type defaults to what `scripts/recommend-bump.js` reads off the
+[Conventional Commits](https://www.conventionalcommits.org/) since the last `v*`
+tag — a breaking change (`!` in the header or a `BREAKING CHANGE:` footer) gives
+**major**, a `feat` gives **minor**, anything else **patch**. Set `BUMP` to
+override. It runs, in order:
 
-1. **`npm version`** — bumps `package.json`, syncs the same version into
-   `manifest.json` (the `version` lifecycle hook), then commits and tags.
+1. **`npm version`** — bumps `package.json`, then (in the `version` lifecycle
+   hook) syncs the version into `manifest.json` and prepends the release notes to
+   `CHANGELOG.md`, before committing and tagging. The notes are built from the
+   Conventional Commits since the last tag, grouped by type (`feat` → Features,
+   `fix` → Bug Fixes, …) with breaking changes on top. **Commits with a
+   non-conventional message are deliberately left out** — that's how to keep
+   something off the changelog. Skim the generated entry and tidy it if needed
+   (the bump commit isn't pushed yet, so you can `git commit --amend`).
 2. **`npm run build`** — zips the extension into `dist/eingang-<version>.zip`.
 
 The commit and tag stay **local**. Then ship the build manually:
