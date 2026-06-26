@@ -1,21 +1,14 @@
 /* ---------------------------------------------------------------------------
-   Keyboard focus indicator for YouTube's *own* results (left of the panel).
-   YouTube's result cards are built from native, tab-focusable <a> links
-   (thumbnail + title), so keyboard focus already moves through them on Tab —
-   only YouTube's default ring is faint. When any link inside a card has
-   keyboard focus, outline the whole card so the keyboard position is obvious.
-   The inset offset means the ring is drawn inside the card box, so it can't be
-   clipped by an ancestor's overflow or overlap neighbouring cards in the grid.
+   Keyboard focus ring for YouTube's *own* result cards (left of the panel).
+   Cards are native tab-focusable <a> links, so Tab already moves through them —
+   only YouTube's default ring is faint. Outline the whole card on focus; the
+   inset offset keeps the ring inside the box so overflow can't clip it.
 
    Two triggers:
-   1. :has(:focus-visible) — normal Tab navigation through the results. Keeps the
-      ring off mouse clicks and lights the card whichever sub-link holds focus.
-   2. .yt-panel-kbd-focus — added by inject-focus.js when it moves focus to the
-      first result after a panel search. Needed because that focus is moved
-      programmatically, and the browser's :focus-visible heuristic keys off the
-      last *trusted* input event; our search is driven by synthetic events, so
-      the ring would otherwise stay dark until the user pressed another key. The
-      explicit class forces it on immediately; the script removes it on blur. */
+   1. :has(:focus-visible) — normal Tab nav; stays off mouse clicks.
+   2. .yt-panel-kbd-focus — added by inject-focus.js for the post-search focus,
+      which is programmatic and so misses :focus-visible (it keys off the last
+      trusted key); the class forces the ring on, removed on blur. */
 :is(
   ytd-video-renderer,
   ytd-playlist-renderer,

@@ -1,11 +1,10 @@
-// Artist typeahead: a debounced Discogs search under the input with a keyboard-
-// and mouse-navigable dropdown. Owns the input element's event wiring.
+// Artist typeahead: debounced Discogs search with a keyboard/mouse-navigable
+// dropdown. Owns the input element's event wiring.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
-  // Delay closing the dropdown on blur so a result's mousedown selection
-  // registers before the list disappears.
+  // Delay close-on-blur so a result's mousedown registers first.
   const BLUR_CLOSE_MS = 150;
 
   /** @param {Ctx} ctx */
@@ -14,12 +13,12 @@
     const { input, suggestions, spinner } = els;
 
     let debounceTimer = null;
-    let searchController = null; // AbortController for the in-flight fetch
+    let searchController = null; // aborts the in-flight fetch
     let searchSeq = 0; // guards against out-of-order responses
     let items = []; // current suggestions: { id, name }
     let highlight = -1;
 
-    // Toggle the loading spinner overlaying the input's right edge.
+    // Toggle the spinner at the input's right edge.
     function setLoading(on) {
       spinner.hidden = !on;
       input.setAttribute("aria-busy", String(on));
@@ -56,7 +55,7 @@
         li.className = "yt-search-panel-result";
         li.textContent = item.name;
         li.setAttribute("role", "option");
-        // mousedown fires before blur closes the list; preventDefault keeps focus.
+        // mousedown beats the blur-close; preventDefault keeps focus.
         li.addEventListener("mousedown", (event) => {
           event.preventDefault();
           ctx.releases.selectArtist(item);
@@ -96,8 +95,8 @@
       }
     }
 
-    // Used when the other-artists list picks an artist: fill the box, focus it
-    // (cursor at the end), and search right away.
+    // Other-artists list picked an artist: fill the box, focus (cursor at end),
+    // and search now.
     function setQueryAndSearch(name) {
       if (!name) return;
       input.value = name;
@@ -120,13 +119,13 @@
         closeSuggestions();
         return;
       }
-      setLoading(true); // immediate feedback through the debounce wait
+      setLoading(true); // immediate feedback during the debounce wait
       debounceTimer = setTimeout(() => searchArtists(query), cfg.DEBOUNCE_MS);
     });
 
     input.addEventListener("keydown", (event) => {
       if (suggestions.hidden) {
-        // No open suggestions: ArrowDown drops focus into the releases list.
+        // No dropdown: ArrowDown drops focus into the releases list.
         if (event.key === "ArrowDown" && els.releases.children.length) {
           event.preventDefault();
           ctx.releases.focusFirst();

@@ -6,16 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Manifest V3 Chrome extension that injects a side panel on `*.youtube.com`: search the Discogs API for an artist, list their releases, click one to drive YouTube's own search box (in-page, no reload) and focus the first result.
 
-**No build step, bundler, or transpiler** — source files load as-is. Code is modern (ES2022) JS wrapped in IIFE modules (`(function () { "use strict"; ... })()`), no `import`/`export`; everything talks through globals. Use modern syntax freely (arrow callbacks, template literals, destructuring, `async`/`await`, optional chaining/nullish), but keep named helper functions as `function` declarations so the modules' factory order stays free via hoisting. Match that style; keep files small (existing ones are ≤185 lines).
+**No build step, bundler, or transpiler** — source files load as-is. Code is modern (ES2022) JS wrapped in IIFE modules (`(function () { "use strict"; ... })()`), no `import`/`export`; everything talks through globals. Use modern syntax freely (arrow callbacks, template literals, destructuring, `async`/`await`, optional chaining/nullish), but keep named helper functions as `function` declarations so the modules' factory order stays free via hoisting. Match that style; keep files small (existing ones are ≤185 lines). Keep code comments highly concise — explain *why* when non-obvious; never narrate what the code plainly says.
 
 ## Commands
 
 ```bash
-npm install            # dev-only: playwright-core (no browser download)
+npm install            # dev-only: playwright-core (no browser download) + typescript
+npm run typecheck      # type-check src/ against its JSDoc (tsc --noEmit; no build)
 npm run test:e2e       # or: node test/e2e.js
 npm run build          # zip the extension into dist/eingang-<version>.zip
 npm run release        # bump version (commit + tag), then build the zip
 ```
+
+`typecheck` is **not a build step** — `tsc` runs with `noEmit` (config in
+`jsconfig.json`), so it only reports type errors; the source still ships as-is.
+It checks `src/` against the JSDoc typedefs in `config.js` plus the ambient
+declarations in `types/globals.d.ts`. Editors (VS Code) read `jsconfig.json` too.
 
 Shipping is **manual**: upload the built `dist/eingang-<version>.zip` at the
 [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole) and submit for review.
@@ -47,7 +53,7 @@ The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` 
 
 ### `YTSP` factory/`ctx` wiring
 
-`config.js` creates `window.YTSP` and holds tunable constants (debounce, page sizes, Discogs URLs, `RELEASES_FILL_MIN`), a couple of shared artist-name helpers (`cleanArtistName`, `isVarious`), and the JSDoc typedefs for the shared contract (`Cfg`, `Els`, `Release`, `Ctx`). Each module registers a factory (`YTSP.createReleases`, …) and annotates it `@param {Ctx} ctx` — since there's no `import`/`export`, the typedefs are ambient/global and give editor autocomplete across files for free. `panel.js` (**loaded last**) builds the DOM, gathers elements into `els`, builds `ctx = { els, cfg, runYouTubeSearch }`, then calls every factory and stores the result back on `ctx` (`ctx.releases`, …). Modules reach each other lazily via `ctx`, so factory order is free — but manifest `js` order *is* load order, and `panel.js` must stay last. **Adding a module:** register it in `manifest.json` before `panel.js`, then create its element and instantiate it into `ctx` in `panel.js` (and add it to the `Ctx` typedef in `config.js`).
+`config.js` creates `window.YTSP` and holds tunable constants (debounce, page sizes, Discogs URLs, `RELEASES_FILL_MIN`), a couple of shared artist-name helpers (`cleanArtistName`, `isVarious`), and the JSDoc typedefs for the shared contract (`Cfg`, `Els`, `Release`, `Ctx`). Each module registers a factory (`YTSP.createReleases`, …) and annotates it `@param {Ctx} ctx` — since there's no `import`/`export`, the typedefs (declared at the **bottom of `config.js`, at top level**, so they're global) are ambient and give autocomplete across files for free, and `npm run typecheck` enforces them. Keep them at the file's top level with nothing following; nested inside the IIFE they'd be file-local, and placed *before* a function the JSDoc would bind to it (duplicate-identifier). `panel.js` (**loaded last**) builds the DOM, gathers elements into `els`, builds `ctx = { els, cfg, runYouTubeSearch }`, then calls every factory and stores the result back on `ctx` (`ctx.releases`, …). Modules reach each other lazily via `ctx`, so factory order is free — but manifest `js` order *is* load order, and `panel.js` must stay last. **Adding a module:** register it in `manifest.json` before `panel.js`, then create its element and instantiate it into `ctx` in `panel.js` (and add it to the `Ctx` typedef in `config.js`).
 
 ### Releases: one cache, filters narrow it, paging fills it
 
@@ -85,3 +91,5 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 | `css/releases.css` | Releases list, filters, loading spinner, other-artists section. |
 | `css/yt-results-focus.css` | Keyboard focus ring for YouTube's own results. |
 | `test/e2e.js` | The end-to-end test (headless Chrome). |
+| `jsconfig.json` | `tsc --noEmit` config for `npm run typecheck` (checks `src/` JSDoc; not a build). |
+| `types/globals.d.ts` | Ambient type-only declarations (`window.YTSP`, the bit of `chrome.*` used) for the typecheck. |

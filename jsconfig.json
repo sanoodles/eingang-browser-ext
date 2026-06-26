@@ -1,0 +1,22 @@
+{
+  // Type-checks the extension's source against its own JSDoc typedefs
+  // (src/config.js: Cfg/Els/Release/Ctx). No build step: `noEmit` means tsc only
+  // reports errors — nothing is transpiled, the source ships as-is. Run it with
+  // `npm run typecheck`. Editors (VS Code) read this file too.
+  "compilerOptions": {
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    // Lenient on purpose: the modules talk through an untyped `window.YTSP`
+    // global, so strict null/implicit-any checks would flood with noise the
+    // pattern can't satisfy. This still catches DOM API misuse, wrong argument
+    // counts, undefined names, and bad fields on JSDoc-typed objects.
+    "strict": false,
+    "noImplicitAny": false
+  },
+  "include": ["src/**/*.js", "types/**/*.d.ts"]
+}

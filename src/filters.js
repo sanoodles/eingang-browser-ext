@@ -1,13 +1,12 @@
-// Category filter chips for the releases list — Releases / Appearances /
-// Unofficial / Credits — mirroring the discography filter on a Discogs artist
-// page. Owns the category model: each filter tests a release's Discogs `role`.
+// Category filter chips — Releases / Appearances / Unofficial / Credits —
+// mirroring the Discogs artist-page discography filter. Owns the category
+// model: each filter tests a release's Discogs `role`.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
-  // Discogs groups an artist's releases by `role`. These four buckets match the
-  // Discogs artist page. Credits is the catch-all for crediting roles (Remix,
-  // Producer, Written-By, …) that aren't main, an appearance, or unofficial.
+  // Four buckets over Discogs' `role`, matching the artist page. Credits is the
+  // catch-all (Remix, Producer, Written-By, …) — anything not the other three.
   const CATS = [
     { id: "releases", label: "Releases", test: (r) => r === "Main" },
     {
@@ -38,8 +37,7 @@
       return CATS.find((c) => c.id === id) || CATS[0];
     }
 
-    // Reflect the active chip: highlighted, selected, and the only one in the
-    // Tab order (arrow keys move between the rest).
+    // Reflect the active chip: highlighted, selected, the only one tabbable.
     function paint() {
       for (const c of CATS) {
         const on = c.id === activeId;
@@ -54,7 +52,7 @@
       activeId = id;
       paint();
       if (fire !== false) {
-        ctx.subfilters.reset(); // a different category has a different role set
+        ctx.subfilters.reset(); // different category, different role set
         ctx.releases.setFilter();
       }
     }
@@ -80,11 +78,10 @@
     paint();
 
     return {
-      // Does a release's role belong to the currently active category?
+      // Does a release's role belong to the active category?
       test: (role) => find(activeId).test(role),
       activeLabel: () => find(activeId).label,
-      // Back to the default category without firing a reload (the caller is
-      // already (re)loading, e.g. on a new artist).
+      // Back to the default category without reloading (caller already (re)loads).
       reset: () => choose(DEFAULT_ID, false),
     };
   };

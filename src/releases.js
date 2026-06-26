@@ -1,9 +1,9 @@
 // Releases list: loads an artist's releases from Discogs (newest first), caches
-// them, and shows the ones in the active category (filters.js). Pages in more
-// (paging.js), and keeps paging when a category's rows start only on later pages.
+// them, shows the active category (filters.js). Pages in more (paging.js), and
+// keeps paging when a category's rows start only on later pages.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   /** @param {Ctx} ctx */
   YTSP.createReleases = function (ctx) {
@@ -16,9 +16,9 @@
     let currentArtistName = "";
     let nextPage = 1;
     let totalPages = 1;
-    let hasMore = false; // more pages exist beyond what's loaded
-    let loadingMore = false; // a page fetch is in flight (re-entrancy guard)
-    let cache = []; // every release fetched for this artist, all categories
+    let hasMore = false; // pages exist beyond what's loaded
+    let loadingMore = false; // page fetch in flight (re-entrancy guard)
+    let cache = []; // every release fetched for this artist
 
     function setStatus(text) {
       els.status.textContent = text || "";
@@ -44,8 +44,8 @@
     });
 
     function activateRelease(rel) {
-      // Use the release's own credited artist (rel.artist), not the searched one
-      // (they differ for productions/appearances); clean it, then drop "Various".
+      // Use the release's own credited artist (differs from the searched one for
+      // productions/appearances); clean it, then drop "Various".
       let who = YTSP.cleanArtistName(rel.artist);
       if (YTSP.isVarious(who)) who = "";
       ctx.runYouTubeSearch(`${who} ${rel.title || ""}`.trim());
@@ -63,15 +63,15 @@
     // Keep exactly one row in the Tab order (roving promotes the active one).
     function ensureTabbable() {
       if (releases.querySelector('.yt-rel[tabindex="0"]')) return;
-      const first = releases.querySelector(".yt-rel");
+      const first = /** @type {HTMLElement | null} */ (releases.querySelector(".yt-rel"));
       if (first) first.tabIndex = 0;
     }
-    // Keep paging while the active filters show too few rows and pages remain —
-    // walks to a category/role that only appears later (Discogs blocks are ordered).
+    // Page on while the active filters show too few rows and pages remain, to
+    // reach a category/role that only appears later (Discogs blocks are ordered).
     function fillIfHungry() {
       if (hasMore && !loadingMore && shownCount() < cfg.RELEASES_FILL_MIN) loadReleases(false);
     }
-    // Rebuild the visible list from the cache for the now-active filters (instant).
+    // Rebuild the visible list from the cache for the active filters (instant).
     function setFilter() {
       releases.replaceChildren();
       releases.scrollTop = 0;
@@ -94,11 +94,11 @@
       loadingMore = false;
       cache = [];
       releases.replaceChildren();
-      paging.observeLast(false); // stop watching the previous artist's last row
-      ctx.other.clearOtherArtists(); // previous release's collaborators are stale
-      ctx.filters.reset(); // a new artist starts on the Releases filter
+      paging.observeLast(false); // stop watching the old last row
+      ctx.other.clearOtherArtists(); // old collaborators are stale
+      ctx.filters.reset(); // new artist starts on Releases
       ctx.subfilters.reset();
-      ctx.songFilter.reset(); // drop the previous artist's text filter
+      ctx.songFilter.reset(); // drop the old text filter
       els.filters.hidden = false;
       els.songFilter.hidden = false;
       loadReleases(true);
@@ -121,7 +121,7 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (seq !== releasesSeq) return; // superseded by a newer selection
-        paging.showLoadingRow(false); // remove before appending so it stays last
+        paging.showLoadingRow(false); // remove first so it stays last after append
         const list = data.releases || [];
         totalPages = data.pagination?.pages || 1;
         cache = [...cache, ...list];
@@ -139,7 +139,7 @@
         paging.showLoadingRow(false);
         loadingMore = false;
         // Keep hasMore so a later scroll/focus can retry, but don't re-observe
-        // (an already-visible last row would retry-loop instantly).
+        // (a visible last row would retry-loop instantly).
         hasMore = page < totalPages;
         setStatus(`Couldn't load ${reset ? "releases" : "more"} (${err.message}).`);
       }
@@ -148,8 +148,7 @@
     return {
       selectArtist,
       setFilter,
-      // Move keyboard focus into the list's first row — ArrowDown from the
-      // artist box or the text filter lands here.
+      // Focus the list's first row (ArrowDown from the artist box / text filter).
       focusFirst: () => paging.rove(paging.firstTabbable()),
       artistName: () => currentArtistName,
     };
