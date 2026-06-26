@@ -34,7 +34,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--yt-panel-accent);
+      outline: var(--yt-panel-focus-ring);
       outline-offset: 2px;
     }
   }
@@ -70,7 +70,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--yt-panel-accent);
+      outline: var(--yt-panel-focus-ring);
       outline-offset: 2px;
     }
   }
@@ -118,8 +118,10 @@
     gap: 2px;
   }
 
-  .yt-rel {
-    padding: 8px 10px;
+  /* Clickable rows — releases here and the other-artists list share the
+     hover/focus styling; only padding differs (see .yt-other below). */
+  .yt-rel,
+  .yt-other {
     border-radius: 8px;
     cursor: pointer;
 
@@ -130,28 +132,35 @@
     &:focus,
     &:focus-visible {
       background: var(--yt-panel-focus-bg);
-      outline: 2px solid var(--yt-panel-accent);
+      outline: var(--yt-panel-focus-ring);
       outline-offset: -2px;
     }
+  }
+
+  .yt-rel {
+    padding: 8px 10px;
   }
 
   .yt-rel-main {
     min-width: 0;
   }
 
-  .yt-rel-title {
-    color: var(--yt-panel-text);
+  /* Single-line labels that truncate with an ellipsis. */
+  .yt-rel-title,
+  .yt-rel-meta,
+  .yt-other-name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
+  .yt-rel-title {
+    color: var(--yt-panel-text);
+  }
+
   .yt-rel-meta {
     color: var(--yt-panel-text-2);
     font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   /* Inline "loading more…" row at the bottom of the release list. */
@@ -204,19 +213,6 @@
 
   .yt-other {
     padding: 6px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-
-    &:hover {
-      background: var(--yt-panel-hover);
-    }
-
-    &:focus,
-    &:focus-visible {
-      background: var(--yt-panel-focus-bg);
-      outline: 2px solid var(--yt-panel-accent);
-      outline-offset: -2px;
-    }
   }
 
   .yt-other-empty {
@@ -227,9 +223,6 @@
 
   .yt-other-name {
     color: var(--yt-panel-text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 

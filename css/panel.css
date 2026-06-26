@@ -1,6 +1,7 @@
-#yt-search-panel-ext {
-  /* Follow YouTube's theme: its Polymer app sets `dark` on <html> in dark mode.
-     These are the light palette; the `html[dark] &` block below swaps in dark. */
+/* Theme palette on <html> so the panel and the floating reopen tab (outside the
+   panel subtree) share one set of vars. YouTube's Polymer app sets `dark` on
+   <html> in dark mode; the html[dark] block below swaps in the dark palette. */
+html {
   --yt-panel-bg: #ffffff;
   --yt-panel-surface: #ffffff; /* dropdown / load-more background */
   --yt-panel-input-bg: #ffffff;
@@ -13,7 +14,25 @@
   --yt-panel-focus-bg: #e8f0fe;
   --yt-panel-accent: #065fd4;
   --yt-panel-shadow: rgba(0, 0, 0, 0.15);
+  --yt-panel-focus-ring: 2px solid var(--yt-panel-accent); /* shared keyboard focus outline */
+}
 
+html[dark] {
+  --yt-panel-bg: #0f0f0f;
+  --yt-panel-surface: #212121;
+  --yt-panel-input-bg: #121212;
+  --yt-panel-input-border: #616161;
+  --yt-panel-text: #ffffff;
+  --yt-panel-text-2: #909090;
+  --yt-panel-border: #303030;
+  --yt-panel-hover: #1d1d1d;
+  --yt-panel-hover-2: #383838;
+  --yt-panel-focus-bg: #1f2b31; /* dark selection bg, dimmed so 12px meta text clears AA (4.5:1) */
+  --yt-panel-accent: #3ea6ff;
+  --yt-panel-shadow: rgba(0, 0, 0, 0.5);
+}
+
+#yt-search-panel-ext {
   /* In-flow column (reserves real layout space), width from --yt-panel-width
      (panel-chrome.js, default 400px). */
   flex: 0 0 var(--yt-panel-width, 400px);
@@ -36,22 +55,6 @@
   gap: 12px;
   font-family: "Roboto", Arial, sans-serif;
   font-size: 14px;
-
-  /* Dark theme: YouTube sets `dark` on the root element. */
-  html[dark] & {
-    --yt-panel-bg: #0f0f0f;
-    --yt-panel-surface: #212121;
-    --yt-panel-input-bg: #121212;
-    --yt-panel-input-border: #616161;
-    --yt-panel-text: #ffffff;
-    --yt-panel-text-2: #909090;
-    --yt-panel-border: #303030;
-    --yt-panel-hover: #1d1d1d;
-    --yt-panel-hover-2: #383838;
-    --yt-panel-focus-bg: #1f2b31; /* dark selection bg, dimmed so 12px meta text clears AA (4.5:1) */
-    --yt-panel-accent: #3ea6ff;
-    --yt-panel-shadow: rgba(0, 0, 0, 0.5);
-  }
 
   /* Header row: title on the left, collapse button on the right. */
   .yt-search-panel-header {
@@ -90,7 +93,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--yt-panel-accent);
+      outline: var(--yt-panel-focus-ring);
       outline-offset: 2px;
     }
   }
@@ -122,7 +125,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--yt-panel-accent);
+      outline: var(--yt-panel-focus-ring);
       outline-offset: -2px;
     }
   }
@@ -141,7 +144,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--yt-panel-accent);
+      outline: var(--yt-panel-focus-ring);
       outline-offset: 2px;
       border-radius: 2px;
     }
@@ -237,8 +240,8 @@
   }
 }
 
-/* Floating reopen tab, shown only while collapsed. Outside the panel subtree, so
-   it carries its own colors (panel theme vars don't reach) keyed off `dark`. */
+/* Floating reopen tab, shown only while collapsed. Reads the shared theme vars on
+   <html>; its background uses --yt-panel-surface (matches the tab's dark shade). */
 #yt-search-panel-reopen {
   position: fixed;
   /* Just below YouTube's ~56px masthead, near where the collapse button was (not
@@ -252,38 +255,27 @@
   width: 22px;
   height: 72px;
   padding: 0;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--yt-panel-border);
   border-right: none;
   border-radius: 8px 0 0 8px;
-  background: #ffffff;
-  color: #0f0f0f;
+  background: var(--yt-panel-surface);
+  color: var(--yt-panel-text);
   font-family: "Roboto", Arial, sans-serif;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
-
-  html[dark] & {
-    border-color: #303030;
-    background: #212121;
-    color: #ffffff;
-    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.5);
-  }
+  box-shadow: -2px 0 12px var(--yt-panel-shadow);
 
   html.ytsp-collapsed & {
     display: flex;
   }
 
   &:hover {
-    color: #065fd4;
-  }
-
-  html[dark] &:hover {
-    color: #3ea6ff;
+    color: var(--yt-panel-accent);
   }
 
   &:focus-visible {
-    outline: 2px solid #065fd4;
+    outline: var(--yt-panel-focus-ring);
     outline-offset: 2px;
   }
 }
