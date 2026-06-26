@@ -31,12 +31,14 @@ Shipping is **manual**: upload the built `dist/eingang-<version>.zip` at the
 
 ### Releasing
 
-`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). The release pipeline lives in `package.json`'s scripts so it reads top-to-bottom: `release` is `npm version … && npm run build`, and npm's `version` hook (`scripts/sync-version.js`) syncs `manifest.json` during the bump. The bump type is the `BUMP` env var (default `patch`):
+`scripts/` holds zero-dep node helpers (no bundler — the zip is *packaging*, not a build of the source). The release pipeline lives in `package.json`'s scripts so it reads top-to-bottom: `release` is `npm version … && npm run build`. During the bump, npm's `version` hook syncs `manifest.json` (`scripts/sync-version.js`) and prepends the release notes to `CHANGELOG.md` (`scripts/changelog.js`), staging both so they ride in the release commit. The bump type defaults to whatever `scripts/recommend-bump.js` infers from the Conventional Commits since the last `v*` tag (breaking → major, `feat` → minor, else patch), and the `BUMP` env var overrides it:
 
 ```bash
-npm run release             # patch: 1.1.0 -> 1.1.1
-BUMP=minor npm run release  # 1.1.0 -> 1.2.0   (also BUMP=major, or BUMP=2.0.0)
+npm run release             # bump inferred from commits since the last tag
+BUMP=minor npm run release  # force it (also BUMP=major, BUMP=patch, or BUMP=2.0.0)
 ```
+
+Only the 11 standard Conventional Commit types (`feat`, `fix`, `perf`, `refactor`, `docs`, `build`, `ci`, `test`, `style`, `chore`, `revert`) reach the changelog, grouped under those headings with breaking changes called out on top; any other prefix — or a plain, non-conventional message — is left out, which is the way to keep a commit off the changelog.
 
 `release` commits + tags locally only and stops at the built zip — there's no automated upload. Ship by hand: upload `dist/eingang-<version>.zip` at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), submit for Google's review (not instant), then `git push --follow-tags`. The step-by-step how-to lives in `CONTRIBUTING.md`; keep the two in sync.
 
