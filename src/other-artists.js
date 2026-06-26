@@ -1,8 +1,7 @@
-// "Other artists on this release" — derived from the release item's `artist`
-// field already in the list response (a slash-joined string like
-// "Spearhead / Radiohead"), so no extra API request is needed. Covers
-// co-credited headline artists only, not producer/writer credits. Selecting an
-// artist hands its name back to the typeahead and searches for it.
+// "Other artists on this release" — parsed from the release's `artist` field
+// already in the list response (slash-joined, "Spearhead / Radiohead"), so no
+// extra request. Co-credited headline artists only, not producer/writer
+// credits. Selecting one hands its name to the typeahead and searches.
 (function () {
   "use strict";
 
@@ -24,9 +23,8 @@
       ctx.typeahead.setQueryAndSearch(name);
     }
 
-    // Render either the artist names or a muted placeholder. The section is
-    // always visible (and keeps its reserved height), so an empty state shows a
-    // message rather than collapsing.
+    // Render the artist names, or a muted placeholder. The section is always
+    // visible, so an empty state shows a message rather than collapsing.
     function renderOtherList(names, emptyMessage) {
       others.replaceChildren();
       if (!names.length) {
@@ -39,7 +37,7 @@
       names.forEach((name, i) => {
         const li = document.createElement("li");
         li.className = "yt-other";
-        li.tabIndex = i === 0 ? 0 : -1; // roving; first row is the one in the Tab order
+        li.tabIndex = i === 0 ? 0 : -1; // roving; first row is tabbable
         li.setAttribute("role", "button");
         li.setAttribute("aria-label", name);
 
@@ -55,17 +53,17 @@
       });
     }
 
-    // Idle state (no release selected yet); the section stays on screen.
+    // Idle state (no release selected yet).
     function clearOtherArtists() {
       otherHeading.textContent = "Other artists";
       renderOtherList([], "Select a release to see its other artists.");
     }
 
     function showOtherArtists(rel) {
-      const label = `“${rel.title || ""}”`; // “title”
+      const label = `“${rel.title || ""}”`;
       const artistName = YTSP.cleanArtistName(ctx.releases.artistName());
-      // Split on " / " — the spaces matter, so names like "AC/DC" stay intact —
-      // then clean each name and drop the artist we're browsing plus "Various".
+      // Split on " / " (spaces matter, so "AC/DC" stays intact), clean each, then
+      // drop the browsed artist and "Various".
       const names = (rel.artist || "")
         .split(" / ")
         .map((s) => YTSP.cleanArtistName(s))

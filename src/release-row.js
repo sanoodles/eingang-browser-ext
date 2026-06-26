@@ -1,5 +1,5 @@
-// Renders a single release row. Pure DOM construction given a release item and a
-// pair of handlers, so the releases module stays focused on loading/paging.
+// Renders one release row — pure DOM from a release item + handlers, so
+// releases.js stays focused on loading/paging.
 (function () {
   "use strict";
 
@@ -29,7 +29,7 @@
     title.className = "yt-rel-title";
     title.textContent = rel.title || "(untitled)";
 
-    // Year leads the meta line, ahead of type/role/format-or-label.
+    // Meta line: year, then type/role/format-or-label.
     const metaParts = [
       rel.year ? String(rel.year) : null,
       rel.type,

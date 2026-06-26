@@ -1,6 +1,6 @@
-// Roving tabindex: exactly one row of a list is in the Tab order at a time, and
-// arrow keys move focus (and the tabbable row) through it. Shared by the releases
-// list and the other-artists list.
+// Roving tabindex: one row of a list is in the Tab order at a time; arrow keys
+// move focus (and the tabbable row). Shared by the releases and other-artists
+// lists.
 (function () {
   "use strict";
 
@@ -30,7 +30,7 @@
       onRove?.(li);
     }
 
-    // Bind the standard key handling to one row; `activate` runs on Enter/Space.
+    // Bind key handling to one row; `activate` runs on Enter/Space.
     function attach(li, activate) {
       li.addEventListener("keydown", (event) => {
         const list = rows();
@@ -42,7 +42,7 @@
             break;
           case "ArrowUp":
             event.preventDefault();
-            if (idx === 0) toInput(); // back up into the search box
+            if (idx === 0) toInput(); // back up into the box
             else rove(list[idx - 1]);
             break;
           case "Home":

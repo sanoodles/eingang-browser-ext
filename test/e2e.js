@@ -186,10 +186,9 @@ async function pageUntil(page, ready, tries) {
   return page.evaluate(panelState);
 }
 
-// Drag the panel's left edge by dx CSS px with a real mouse gesture (negative dx
-// grows the panel), so panel-chrome's mousedown→mousemove→mouseup path runs.
-// Grabs the handle mid-height to stay clear of YouTube's fixed masthead. Returns
-// the edge's final clientX, from which the expected width is innerWidth - x.
+// Drag the left edge by dx CSS px via a real mouse gesture (negative dx grows it),
+// so panel-chrome's mousedown→move→up path runs. Grabs the handle mid-height to
+// clear YouTube's fixed masthead. Returns the edge's final clientX.
 async function dragResize(page, dx) {
   const box = await page.locator(".yt-search-panel-resize").boundingBox();
   const cx = box.x + box.width / 2;
@@ -211,9 +210,8 @@ async function run(page) {
   check("panel injected", await waitOk(() =>
     page.waitForSelector("#yt-search-panel-ext", { timeout: 15000 })));
 
-  // 2. Typeahead returns suggestions including the artist. A spinner shows over
-  // the input (and aria-busy flips) while the lookup is in flight, then clears
-  // once results render. The 500ms debounce keeps the loading window observable.
+  // 2. Typeahead suggests the artist. A spinner (aria-busy) shows during the
+  // lookup, then clears. The 500ms debounce keeps the loading window observable.
   await page.fill(".yt-search-panel-input", "Daft Punk");
   const spinnerShown = await waitOk(() => page.waitForFunction(`(() => {
     const sp = document.querySelector('.yt-search-panel-spinner');
@@ -239,10 +237,8 @@ async function run(page) {
   })()`, { timeout: 15000 }));
   check("spinner clears once suggestions arrive", spinnerCleared);
 
-  // 2b. Keyboard highlight in the dropdown: ArrowDown moves the active suggestion
-  // down the list and ArrowUp moves it back (the 'active' class marks it). We
-  // assert the highlight position only, then still select by click below so the
-  // rest of the journey keeps the exact "Daft Punk" match.
+  // 2b. Dropdown highlight: ArrowDown/Up move the 'active' suggestion. Assert the
+  // position only, then select by click below to keep the exact "Daft Punk" match.
   const activeSuggestion = `(() => {
     const lis = [...document.querySelectorAll('.yt-search-panel-result')];
     return { count: lis.length, activeIdx: lis.findIndex(l => l.classList.contains('active')) };
@@ -273,11 +269,9 @@ async function run(page) {
   check("role sub-row hidden for single-role category",
     !!s.subfilters && s.subfilters.hidden, JSON.stringify(s.subfilters));
 
-  // 3b. Keyboard navigation of the list (mouse-free): ArrowDown from the artist
-  // box drops focus onto the first release row (ctx.releases.focusFirst), arrows
-  // rove between rows, and ArrowUp from the first row returns focus to the box.
-  // Ends on the box, leaving clean state for the text-filter step. (Avoids the
-  // last row, which would trigger auto-paging.)
+  // 3b. List keyboard nav: ArrowDown from the box focuses the first row
+  // (focusFirst), arrows rove, ArrowUp from the first row returns to the box.
+  // Ends on the box for the next step; avoids the last row (auto-pages).
   const activeRow = `(() => {
     const a = document.activeElement;
     return {
@@ -305,9 +299,8 @@ async function run(page) {
   check("ArrowUp from the first row returns focus to the artist box",
     nav.isInput, JSON.stringify(nav));
 
-  // 4. Text filter narrows the loaded list to titles containing the query, and
-  // Esc clears it back to the full list. Done on the default Releases list, and
-  // cleared before the chip steps so it doesn't carry over into them.
+  // 4. Text filter narrows to titles containing the query; Esc clears it. Done on
+  // the Releases list and cleared before the chip steps so it doesn't carry over.
   const needle = pickNeedle(s.titles);
   check("a filterable title word was found", !!needle,
     JSON.stringify(s.titles.slice(0, 6)));
@@ -357,9 +350,8 @@ async function run(page) {
   check("feedback mailto link present",
     /^mailto:samuelgomezcrespo@gmail\.com/.test(feedbackHref), "href=" + feedbackHref);
 
-  // 8. Activating a release drives YouTube's own search box AND fills the
-  // "Other artists" section. The section is populated synchronously on click, so
-  // capture the panel before asserting the async navigation.
+  // 8. Activating a release drives YouTube's search box and fills "Other artists".
+  // The section fills synchronously, so capture the panel before the async nav.
   await page.locator(".yt-rel").first().click();
   await sleep(800);
   const after = await page.evaluate(panelState);
@@ -380,11 +372,9 @@ async function run(page) {
   check("activating a release runs a YouTube search",
     searched && !!q && !/^various\b/i.test(q), "query=" + q);
 
-  // 9. Panel chrome (panel-chrome.js): the collapse/reopen toggle hides and
-  // restores the panel (flipping aria + the floating tab), dragging the left edge
-  // resizes it, and both the width and collapsed state survive a page reload
-  // (persisted in chrome.storage.local). The panel survives the SPA navigation
-  // from step 8, so its DOM is still here; the reload at the end re-injects it.
+  // 9. Panel chrome (panel-chrome.js): collapse/reopen hides and restores the
+  // panel (aria + floating tab), drag resizes it, and width + collapsed state
+  // survive a reload (chrome.storage.local). The panel survives step 8's SPA nav.
   let cs = await page.evaluate(chromeState);
   const startWidth = cs.width;
 
@@ -417,10 +407,9 @@ async function run(page) {
     cs.width != null && Math.abs(cs.width - expected) <= 2,
     "got " + cs.width + " expected ~" + expected);
 
-  // Keyboard resize: focus the grip and nudge with arrows. ArrowLeft grows the
-  // panel, ArrowRight shrinks it, by RESIZE_STEP (16) px — or RESIZE_STEP_BIG
-  // (40) with Shift held — mirroring panel-chrome.js. The final width carries
-  // into the persistence check below.
+  // Keyboard resize: focus the grip and nudge. ArrowLeft grows, ArrowRight shrinks,
+  // by 16px (40 with Shift), mirroring panel-chrome.js. Final width feeds the
+  // persistence check below.
   await page.focus(".yt-search-panel-resize");
   let w0 = cs.width;
   await page.keyboard.press("ArrowRight");

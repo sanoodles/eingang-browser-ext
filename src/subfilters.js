@@ -1,14 +1,13 @@
 // Role sub-filter chips, a second row under the category filters (filters.js).
-// Discogs' artist-releases endpoint tags every entry with a coarse `role` (Main,
-// Remix, Producer, Appearance, TrackAppearance, …); these chips narrow the
-// active category to one role. The set is built from the roles actually loaded,
-// so single-role categories (Releases, Unofficial) show no sub-filter at all.
+// Each entry carries a coarse Discogs `role` (Main, Remix, Producer, …); these
+// chips narrow the active category to one role. Built from the roles actually
+// loaded, so single-role categories (Releases, Unofficial) show none.
 (function () {
   "use strict";
   const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   const ALL = "__all__";
-  // Friendlier labels for the roles this endpoint emits; unknown roles show raw.
+  // Friendlier labels; unknown roles show raw.
   const LABELS = {
     Main: "Main",
     Remix: "Remixes",
@@ -23,7 +22,7 @@
   YTSP.createSubfilters = function (ctx) {
     const bar = ctx.els.subfilters;
     let activeRole = ALL;
-    let roles = []; // role values currently shown as chips (ALL is implicit)
+    let roles = []; // roles currently shown as chips (ALL is implicit)
 
     function labelFor(role) {
       return role === ALL ? "All" : LABELS[role] ?? role;
@@ -63,9 +62,8 @@
       return b;
     }
 
-    // Rebuild the chips from the roles in `items` that pass the active category's
-    // `mainTest`. No-op when the role set is unchanged (keeps focus); hidden when
-    // one role or fewer remains, since there's nothing to narrow.
+    // Rebuild chips from the roles in `items` passing the category's `mainTest`.
+    // No-op when unchanged (keeps focus); hidden when ≤1 role (nothing to narrow).
     function setFromCache(items, mainTest) {
       const next = [];
       for (const r of items) {
@@ -75,7 +73,7 @@
         next.length === roles.length && next.every((r, i) => r === roles[i]);
       if (same) return;
       roles = next;
-      if (!roles.includes(activeRole)) activeRole = ALL; // role no longer present
+      if (!roles.includes(activeRole)) activeRole = ALL; // active role gone
       bar.replaceChildren();
       bar.hidden = roles.length <= 1;
       if (bar.hidden) return;

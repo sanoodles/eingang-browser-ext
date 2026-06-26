@@ -1,7 +1,6 @@
 #yt-search-panel-ext {
-  /* Follow YouTube's own theme. YouTube's Polymer app puts a `dark` attribute on
-     <html> in dark mode and removes it in light mode; these defaults are the light
-     palette and the `html[dark] &` block below swaps in the dark one. */
+  /* Follow YouTube's theme: its Polymer app sets `dark` on <html> in dark mode.
+     These are the light palette; the `html[dark] &` block below swaps in dark. */
   --yt-panel-bg: #ffffff;
   --yt-panel-surface: #ffffff; /* dropdown / load-more background */
   --yt-panel-input-bg: #ffffff;
@@ -15,9 +14,8 @@
   --yt-panel-accent: #065fd4;
   --yt-panel-shadow: rgba(0, 0, 0, 0.15);
 
-  /* In-flow column, not floating. Reserves real layout space. The width follows
-     --yt-panel-width (set by panel-chrome.js as the user drags the left edge),
-     defaulting to 400px before any custom value is applied. */
+  /* In-flow column (reserves real layout space), width from --yt-panel-width
+     (panel-chrome.js, default 400px). */
   flex: 0 0 var(--yt-panel-width, 400px);
   min-width: var(--yt-panel-width, 400px);
   align-self: flex-start;
@@ -30,9 +28,8 @@
   color: var(--yt-panel-text);
   border-left: 1px solid var(--yt-panel-border);
   box-shadow: -2px 0 12px var(--yt-panel-shadow);
-  /* One below the 32-bit ceiling: sits above all of YouTube's normal chrome, but
-     leaves the very top slot for YouTube's own popups (masthead menus, dialogs),
-     which layout.css lifts to 2147483647 so they open over the panel. */
+  /* One below the 32-bit ceiling: above YouTube's normal chrome, but leaves the
+     top slot for YouTube's popups, which layout.css lifts to 2147483647. */
   z-index: 2147483646;
   display: flex;
   flex-direction: column;
@@ -98,8 +95,8 @@
     }
   }
 
-  /* Draggable left edge: a thin grip overlaying the panel's left border. The
-     panel is position:sticky (a positioned ancestor), so this anchors to it. */
+  /* Draggable left edge over the panel's left border; anchors to the panel
+     (position:sticky → a positioned ancestor). */
   .yt-search-panel-resize {
     position: absolute;
     top: 0;
@@ -181,7 +178,7 @@
     }
   }
 
-  /* Spinner overlaid at the input's right edge while an artist lookup is running. */
+  /* Spinner at the input's right edge during a lookup. */
   .yt-search-panel-spinner {
     position: absolute;
     top: 50%;
@@ -240,15 +237,12 @@
   }
 }
 
-/* Floating reopen tab on the page's right edge, shown only while collapsed.
-   It sits outside the panel subtree, so it carries its own colors (the panel's
-   theme vars don't reach here) keyed off YouTube's `dark` attribute. */
+/* Floating reopen tab, shown only while collapsed. Outside the panel subtree, so
+   it carries its own colors (panel theme vars don't reach) keyed off `dark`. */
 #yt-search-panel-reopen {
   position: fixed;
-  /* Anchored just below YouTube's ~56px masthead, near the top — so it's close
-     to where the collapse button was, not stranded mid-screen on tall viewports.
-     (Once the panel is hidden the masthead spans the full width, so the tab can't
-     sit any higher without overlapping the avatar.) */
+  /* Just below YouTube's ~56px masthead, near where the collapse button was (not
+     stranded mid-screen). Can't sit higher without overlapping the avatar. */
   top: 64px;
   right: 0;
   z-index: 2147483646;

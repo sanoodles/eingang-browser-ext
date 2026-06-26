@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Manifest V3 Chrome extension that injects a side panel on `*.youtube.com`: search the Discogs API for an artist, list their releases, click one to drive YouTube's own search box (in-page, no reload) and focus the first result.
 
-**No build step, bundler, or transpiler** — source files load as-is. Code is modern (ES2022) JS wrapped in IIFE modules (`(function () { "use strict"; ... })()`), no `import`/`export`; everything talks through globals. Use modern syntax freely (arrow callbacks, template literals, destructuring, `async`/`await`, optional chaining/nullish), but keep named helper functions as `function` declarations so the modules' factory order stays free via hoisting. Match that style; keep files small (existing ones are ≤185 lines).
+**No build step, bundler, or transpiler** — source files load as-is. Code is modern (ES2022) JS wrapped in IIFE modules (`(function () { "use strict"; ... })()`), no `import`/`export`; everything talks through globals. Use modern syntax freely (arrow callbacks, template literals, destructuring, `async`/`await`, optional chaining/nullish), but keep named helper functions as `function` declarations so the modules' factory order stays free via hoisting. Match that style; keep files small (existing ones are ≤185 lines). Keep code comments highly concise — explain *why* when non-obvious; never narrate what the code plainly says.
 
 ## Commands
 

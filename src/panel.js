@@ -1,18 +1,17 @@
-// Builds the panel DOM, wires the modules together, and bootstraps once <body>
-// exists. Must load last (after the module files) since buildPanel() calls their
-// factories. Also bridges a query to the MAIN-world helper (inject-search.js /
-// inject-focus.js) which drives YouTube's own search box.
+// Builds the panel DOM, wires the modules, and bootstraps once <body> exists.
+// Loads last: buildPanel() calls the module factories. Also bridges a query to
+// the MAIN-world helper (inject-*.js) that drives YouTube's own search box.
 (function () {
   "use strict";
 
   const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
   const cfg = YTSP.config;
 
-  // Guard against double injection (YouTube's SPA navigations can re-run things).
+  // Guard double injection (YouTube SPA nav can re-run scripts).
   if (document.getElementById(cfg.PANEL_ID)) return;
 
-  // Hand a query to the MAIN-world helper via a shared DOM attribute and event;
-  // it runs YouTube's search box for an in-page (no full reload) navigation.
+  // Hand a query to the MAIN-world helper via shared DOM attribute + event,
+  // for an in-page (no reload) search.
   function runYouTubeSearch(text) {
     document.documentElement.setAttribute("data-yt-search-panel-query", text);
     document.dispatchEvent(new CustomEvent("yt-search-panel-run"));
@@ -25,7 +24,7 @@
     const panel = document.createElement("div");
     panel.id = cfg.PANEL_ID;
 
-    // Draggable left edge (panel-chrome.js): a thin grip overlaying the border.
+    // Draggable left edge (panel-chrome.js).
     const resizeHandle = document.createElement("div");
     resizeHandle.className = "yt-search-panel-resize";
     resizeHandle.tabIndex = 0;
@@ -33,7 +32,7 @@
     resizeHandle.setAttribute("aria-orientation", "vertical");
     resizeHandle.setAttribute("aria-label", "Resize panel");
 
-    // Header row: title + a button that collapses the panel out of the way.
+    // Header: title + collapse button.
     const header = document.createElement("div");
     header.className = "yt-search-panel-header";
 
@@ -52,8 +51,7 @@
     header.appendChild(heading);
     header.appendChild(collapseBtn);
 
-    // input + suggestion list live in a positioned wrapper so the dropdown can
-    // overlay below the input.
+    // Positioned wrapper so the suggestion dropdown overlays below the input.
     const box = document.createElement("div");
     box.className = "yt-search-panel-box";
 
@@ -72,7 +70,7 @@
     suggestions.setAttribute("role", "listbox");
     suggestions.hidden = true;
 
-    // Spinner overlaid at the input's right edge while a lookup is in flight.
+    // Spinner at the input's right edge while a lookup is in flight.
     const spinner = document.createElement("div");
     spinner.className = "yt-search-panel-spinner";
     spinner.setAttribute("aria-hidden", "true");
@@ -82,8 +80,8 @@
     box.appendChild(spinner);
     box.appendChild(suggestions);
 
-    // Releases area: category filter chips, a status line, and a scrollable,
-    // auto-paging list. Chips stay hidden until an artist is selected.
+    // Releases area: category chips, status line, scrollable auto-paging list.
+    // Chips stay hidden until an artist is selected.
     const filters = document.createElement("div");
     filters.className = "yt-rel-filters";
     filters.setAttribute("role", "tablist");
@@ -96,8 +94,8 @@
     subfilters.setAttribute("aria-label", "Role within category");
     subfilters.hidden = true;
 
-    // Client-side text filter over the loaded releases (song-filter.js). Hidden
-    // until an artist is selected, like the category chips.
+    // Client-side text filter over loaded releases (song-filter.js); hidden
+    // until an artist is selected.
     const songFilter = document.createElement("input");
     songFilter.type = "text";
     songFilter.className = "yt-rel-filter-input";
@@ -115,7 +113,7 @@
     const releases = document.createElement("ul");
     releases.className = "yt-search-panel-releases";
 
-    // "Other artists on this release" section, filled when a release activates.
+    // "Other artists on this release", filled when a release activates.
     const otherHeading = document.createElement("div");
     otherHeading.className = "yt-search-panel-subheading";
     otherHeading.setAttribute("aria-live", "polite");
@@ -123,8 +121,7 @@
     const others = document.createElement("ul");
     others.className = "yt-search-panel-others";
 
-    // Footer: a one-click mailto link for user feedback (no backend, no perms —
-    // it just opens the user's mail client with a prefilled draft).
+    // Footer: mailto feedback link (no backend; opens a prefilled draft).
     const feedback = document.createElement("a");
     feedback.className = "yt-search-panel-feedback";
     feedback.textContent = "Send feedback";
@@ -143,9 +140,8 @@
     panel.appendChild(feedback);
     document.body.appendChild(panel);
 
-    // Floating tab on the page's right edge that brings the panel back; shown by
-    // CSS only while the panel is collapsed. Lives outside the panel so it stays
-    // reachable when the panel is hidden.
+    // Floating reopen tab; shown by CSS only while collapsed, so it lives
+    // outside the panel to stay reachable when the panel is hidden.
     const reopenBtn = document.createElement("button");
     reopenBtn.type = "button";
     reopenBtn.id = "yt-search-panel-reopen";
@@ -156,11 +152,11 @@
     document.body.appendChild(reopenBtn);
 
     // Shared context; modules reference each other lazily via ctx, so creation
-    // order doesn't matter as long as all are set before any event fires.
+    // order is free as long as all are set before any event fires.
     /** @type {Els} */
     const els = { input, suggestions, spinner, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
-    // Cast, not annotate: the sibling factory results (ctx.releases, …) are
-    // filled in on the lines just below, so the literal is intentionally partial.
+    // Cast, not annotate: the sibling results (ctx.releases, …) are filled in
+    // just below, so the literal is intentionally partial.
     const ctx = /** @type {Ctx} */ ({ els, cfg, runYouTubeSearch });
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);
@@ -169,13 +165,13 @@
     ctx.subfilters = YTSP.createSubfilters(ctx);
     ctx.songFilter = YTSP.createSongFilter(ctx);
     ctx.other = YTSP.createOtherArtists(ctx);
-    ctx.other.clearOtherArtists(); // show the section's idle state from the start
+    ctx.other.clearOtherArtists(); // start in the idle state
   }
 
   if (document.body) {
     buildPanel();
   } else {
-    // body not ready yet — wait for it.
+    // Wait for <body>.
     const observer = new MutationObserver(() => {
       if (document.body) {
         observer.disconnect();

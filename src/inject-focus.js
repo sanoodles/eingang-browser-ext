@@ -5,21 +5,19 @@
 
   const NS = /** @type {any} */ (window.__ytSearchPanelInject = window.__ytSearchPanelInject || {});
 
-  // Search-result item types. yt-lockup-view-model is YouTube's newer card,
-  // used for playlists and "Mix" entries that can sit at the very top of the
-  // results — include it so we focus the genuine first item, not the first video.
+  // Search-result item types. yt-lockup-view-model is the newer card (playlists,
+  // "Mix") that can top the list — include it to focus the true first item.
   const RESULT_ITEMS =
     "ytd-video-renderer, ytd-playlist-renderer, ytd-channel-renderer, " +
     "ytd-radio-renderer, ytd-movie-renderer, yt-lockup-view-model";
 
-  // The first search-result item element (or null if results aren't up yet).
+  // First result item (null if results aren't up yet).
   function firstResultItem() {
     const root = document.querySelector("ytd-search") || document;
     return root.querySelector(RESULT_ITEMS);
   }
 
-  // The first result's focusable link. Prefer the title link, fall back to the
-  // thumbnail / any link.
+  // First result's focusable link: title link, else thumbnail / any link.
   /** @returns {HTMLElement | null} */
   function firstResultLink() {
     const item = firstResultItem();
@@ -32,35 +30,30 @@
     );
   }
 
-  // Focus is "loose" when it's not sitting on a search result — i.e. on <body>,
-  // a toolbar button, the search box, etc. YouTube drops focus to such an
-  // element while it rebuilds the results list.
+  // Focus is "loose" when not on a search result (body, a button, the search
+  // box) — where YouTube drops it while rebuilding the results list.
   function focusIsOnResult() {
     return !!document.activeElement?.closest?.(RESULT_ITEMS);
   }
 
-  // Class that yt-results-focus.css turns into a focus ring. We move focus here
-  // programmatically, and the browser only treats programmatic focus as
-  // ":focus-visible" when the last *trusted* input was a keystroke — our search
-  // is driven by synthetic events, so the ring wouldn't show until the user
-  // pressed another key. Tagging the card forces it on immediately.
+  // Class yt-results-focus.css turns into a focus ring. We focus programmatically,
+  // but :focus-visible only kicks in when the last *trusted* input was a key —
+  // our search uses synthetic events, so tag the card to force the ring on.
   const KBD_FOCUS_CLASS = "yt-panel-kbd-focus";
 
-  // focusFirstResult polling (see its comment for why it polls rather than
-  // focusing once).
-  const POLL_MS = 150; // re-check focus this often after the search fires
+  // focusFirstResult polling (see its comment for why it polls).
+  const POLL_MS = 150; // focus re-check interval after the search fires
   const STABLE_MS = 1200; // first result unchanged + focused this long ⇒ done
   const TIMEOUT_MS = 6000; // give up regrabbing focus after this
 
   function clearKbdFocusMark() {
-    // Snapshot the live collection so removing the class doesn't shift it mid-loop.
+    // Snapshot the live collection so removal doesn't shift it mid-loop.
     for (const el of [...document.getElementsByClassName(KBD_FOCUS_CLASS)]) {
       el.classList.remove(KBD_FOCUS_CLASS);
     }
   }
 
-  // Mark the focused link's card, and drop the mark on blur so it behaves
-  // exactly like a focus ring (gone the moment focus moves elsewhere).
+  // Mark the focused link's card; drop it on blur so it acts like a focus ring.
   function markKbdFocus(link) {
     const item = link.closest(RESULT_ITEMS);
     if (!item) return;
@@ -73,17 +66,15 @@
 
   let pendingTimer = null;
 
-  // After the in-page search navigates to /results, move keyboard focus to the
-  // first result. We can't just focus once: on a results→results search the
-  // previous query's results linger in the DOM, get focused, then are destroyed
-  // (dropping focus onto a button), and the new results render in several steps.
-  // So we poll: whenever focus has fallen loose, (re)grab the current first
-  // result; stop once it's been stable and focused for a beat, or after 6 s.
-  // `startHref` (URL before the search) gates us until the navigation happens,
-  // so we don't act on the old page.
+  // After the search navigates to /results, focus the first result. Can't focus
+  // just once: on results→results the old results linger, get focused, then are
+  // destroyed (focus falls to a button), and new results render in steps. So we
+  // poll: whenever focus falls loose, (re)grab the first result; stop once it's
+  // stable and focused for a beat, or after 6 s. `startHref` gates us until the
+  // nav happens, so we don't act on the old page.
   function focusFirstResult(startHref) {
     if (pendingTimer) clearInterval(pendingTimer);
-    clearKbdFocusMark(); // drop any ring left over from a previous search
+    clearKbdFocusMark(); // drop any ring from a previous search
     const deadline = Date.now() + TIMEOUT_MS;
     let lastItem = null;
     let lastChange = Date.now();
@@ -111,7 +102,7 @@
           markKbdFocus(link);
         }
       } else if (Date.now() - lastChange > STABLE_MS) {
-        // First result stable and focus sitting on a result — we're done.
+        // First result stable and focused — done.
         done();
       }
     }
@@ -130,8 +121,7 @@
     if (NS.runYouTubeSearch(query)) {
       focusFirstResult(startHref);
     } else {
-      // Fall back to a normal navigation if YouTube's search box isn't present
-      // (unexpected DOM) so search still works, just with a reload.
+      // Fallback: full-page nav if the search box is missing (unexpected DOM).
       window.location.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
     }
   });
