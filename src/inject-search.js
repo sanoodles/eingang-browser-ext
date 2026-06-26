@@ -8,14 +8,14 @@
 (function () {
   "use strict";
 
-  const NS = (window.__ytSearchPanelInject = window.__ytSearchPanelInject || {});
+  const NS = /** @type {any} */ (window.__ytSearchPanelInject = window.__ytSearchPanelInject || {});
 
   // Drive YouTube's own search box: set its value, then press Enter the way a
   // user would. YouTube handles Enter with an in-page (SPA) navigation, so there
   // is no full document reload. Returns false if the search box can't be found.
   NS.runYouTubeSearch = (text) => {
-    const ytInput = document.querySelector(
-      "input#search, input[name='search_query']"
+    const ytInput = /** @type {HTMLInputElement | null} */ (
+      document.querySelector("input#search, input[name='search_query']")
     );
     if (!ytInput) return false;
 

@@ -3,7 +3,7 @@
 // (paging.js), and keeps paging when a category's rows start only on later pages.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   /** @param {Ctx} ctx */
   YTSP.createReleases = function (ctx) {
@@ -63,7 +63,7 @@
     // Keep exactly one row in the Tab order (roving promotes the active one).
     function ensureTabbable() {
       if (releases.querySelector('.yt-rel[tabindex="0"]')) return;
-      const first = releases.querySelector(".yt-rel");
+      const first = /** @type {HTMLElement | null} */ (releases.querySelector(".yt-rel"));
       if (first) first.tabIndex = 0;
     }
     // Keep paging while the active filters show too few rows and pages remain —

@@ -2,7 +2,7 @@
 // and mouse-navigable dropdown. Owns the input element's event wiring.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   // Delay closing the dropdown on blur so a result's mousedown selection
   // registers before the list disappears.

@@ -3,7 +3,7 @@
 // page. Owns the category model: each filter tests a release's Discogs `role`.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   // Discogs groups an artist's releases by `role`. These four buckets match the
   // Discogs artist page. Credits is the catch-all for crediting roles (Remix,

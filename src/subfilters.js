@@ -5,7 +5,7 @@
 // so single-role categories (Releases, Unofficial) show no sub-filter at all.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   const ALL = "__all__";
   // Friendlier labels for the roles this endpoint emits; unknown roles show raw.
@@ -30,7 +30,7 @@
     }
 
     function paint() {
-      for (const b of bar.children) {
+      for (const b of /** @type {HTMLElement[]} */ ([...bar.children])) {
         const on = b.dataset.role === activeRole;
         b.classList.toggle("active", on);
         b.setAttribute("aria-selected", String(on));
@@ -54,7 +54,7 @@
       b.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
         e.preventDefault();
-        const kids = [...bar.children];
+        const kids = /** @type {HTMLElement[]} */ ([...bar.children]);
         const dir = e.key === "ArrowRight" ? 1 : -1;
         const next = kids[(kids.indexOf(b) + dir + kids.length) % kids.length];
         next.focus();

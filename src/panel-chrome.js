@@ -7,7 +7,7 @@
 (function () {
   "use strict";
 
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   // Keyboard resize: px the arrow keys nudge the panel edge, normally and with
   // Shift held.

@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
   const cfg = YTSP.config;
 
   // Guard against double injection (YouTube's SPA navigations can re-run things).
@@ -159,8 +159,9 @@
     // order doesn't matter as long as all are set before any event fires.
     /** @type {Els} */
     const els = { input, suggestions, spinner, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
-    /** @type {Ctx} */
-    const ctx = { els, cfg, runYouTubeSearch };
+    // Cast, not annotate: the sibling factory results (ctx.releases, …) are
+    // filled in on the lines just below, so the literal is intentionally partial.
+    const ctx = /** @type {Ctx} */ ({ els, cfg, runYouTubeSearch });
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);
     ctx.releases = YTSP.createReleases(ctx);

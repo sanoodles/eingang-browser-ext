@@ -2,77 +2,15 @@
 // content-script file runs in the same isolated world and communicates through
 // this one global object: module files register factories on it, and panel.js
 // wires them together.
+//
+// The shared JSDoc typedefs (Cfg/Els/Release/Ctx) live at the bottom of this
+// file, at top level rather than inside the IIFE, so they're global and every
+// module can reference them (e.g. `@param {Ctx} ctx`). `npm run typecheck`
+// enforces them.
 (function () {
   "use strict";
 
-  const YTSP = (window.YTSP = window.YTSP || {});
-
-  /**
-   * Tunable constants, read across panel.js / panel-chrome.js / releases.js.
-   * @typedef {Object} Cfg
-   * @property {string} PANEL_ID
-   * @property {number} DEBOUNCE_MS
-   * @property {number} MIN_QUERY_LEN
-   * @property {number} MAX_RESULTS
-   * @property {number} PANEL_DEFAULT_WIDTH
-   * @property {number} PANEL_MIN_WIDTH
-   * @property {number} PANEL_MAX_WIDTH
-   * @property {number} PANEL_MIN_KEEP
-   * @property {string} STORE_WIDTH
-   * @property {string} STORE_COLLAPSED
-   * @property {number} RELEASES_PER_PAGE
-   * @property {number} RELEASES_FILL_MIN
-   * @property {string} DISCOGS_SEARCH
-   * @property {string} DISCOGS_ARTISTS
-   */
-
-  /**
-   * A Discogs artist-releases list item — only the fields the panel reads.
-   * @typedef {Object} Release
-   * @property {number} [id]
-   * @property {string} [title]
-   * @property {(number|string)} [year]
-   * @property {string} [type]   Discogs entry type (master, release, …)
-   * @property {string} [role]   Discogs role bucket (Main, Remix, Appearance, …)
-   * @property {string} [format]
-   * @property {string} [label]
-   * @property {string} [artist] credited artist(s), a " / "-joined string
-   */
-
-  /**
-   * The DOM elements panel.js builds and shares with every module via ctx.els.
-   * @typedef {Object} Els
-   * @property {HTMLInputElement} input
-   * @property {HTMLUListElement} suggestions
-   * @property {HTMLDivElement} spinner
-   * @property {HTMLDivElement} filters
-   * @property {HTMLDivElement} subfilters
-   * @property {HTMLInputElement} songFilter
-   * @property {HTMLDivElement} status
-   * @property {HTMLUListElement} releases
-   * @property {HTMLDivElement} otherHeading
-   * @property {HTMLUListElement} others
-   * @property {HTMLDivElement} resizeHandle
-   * @property {HTMLButtonElement} collapseBtn
-   * @property {HTMLButtonElement} reopenBtn
-   */
-
-  /**
-   * The wiring object every module factory receives. panel.js builds it, then
-   * stores each factory's result back onto it; modules reach siblings lazily
-   * through it, so they're all present by the time any event fires.
-   * @typedef {Object} Ctx
-   * @property {Els} els
-   * @property {Cfg} cfg
-   * @property {(text: string) => void} runYouTubeSearch
-   * @property {ReturnType<typeof YTSP.createPanelChrome>} chrome
-   * @property {ReturnType<typeof YTSP.createTypeahead>} typeahead
-   * @property {ReturnType<typeof YTSP.createReleases>} releases
-   * @property {ReturnType<typeof YTSP.createFilters>} filters
-   * @property {ReturnType<typeof YTSP.createSubfilters>} subfilters
-   * @property {ReturnType<typeof YTSP.createSongFilter>} songFilter
-   * @property {ReturnType<typeof YTSP.createOtherArtists>} other
-   */
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   /** @type {Cfg} */
   YTSP.config = {
@@ -116,3 +54,75 @@
     return /^various$/i.test((name || "").trim());
   };
 })();
+
+// --- Shared JSDoc typedefs (global; see the note at the top of the file) ------
+// They sit after the IIFE, at the file's top level (and with nothing following),
+// so each is declared once in the global scope and every module can reference
+// them without the JSDoc binding to a function below.
+
+/**
+ * Tunable constants, read across panel.js / panel-chrome.js / releases.js.
+ * @typedef {Object} Cfg
+ * @property {string} PANEL_ID
+ * @property {number} DEBOUNCE_MS
+ * @property {number} MIN_QUERY_LEN
+ * @property {number} MAX_RESULTS
+ * @property {number} PANEL_DEFAULT_WIDTH
+ * @property {number} PANEL_MIN_WIDTH
+ * @property {number} PANEL_MAX_WIDTH
+ * @property {number} PANEL_MIN_KEEP
+ * @property {string} STORE_WIDTH
+ * @property {string} STORE_COLLAPSED
+ * @property {number} RELEASES_PER_PAGE
+ * @property {number} RELEASES_FILL_MIN
+ * @property {string} DISCOGS_SEARCH
+ * @property {string} DISCOGS_ARTISTS
+ */
+
+/**
+ * A Discogs artist-releases list item — only the fields the panel reads.
+ * @typedef {Object} Release
+ * @property {number} [id]
+ * @property {string} [title]
+ * @property {(number|string)} [year]
+ * @property {string} [type]   Discogs entry type (master, release, …)
+ * @property {string} [role]   Discogs role bucket (Main, Remix, Appearance, …)
+ * @property {string} [format]
+ * @property {string} [label]
+ * @property {string} [artist] credited artist(s), a " / "-joined string
+ */
+
+/**
+ * The DOM elements panel.js builds and shares with every module via ctx.els.
+ * @typedef {Object} Els
+ * @property {HTMLInputElement} input
+ * @property {HTMLUListElement} suggestions
+ * @property {HTMLDivElement} spinner
+ * @property {HTMLDivElement} filters
+ * @property {HTMLDivElement} subfilters
+ * @property {HTMLInputElement} songFilter
+ * @property {HTMLDivElement} status
+ * @property {HTMLUListElement} releases
+ * @property {HTMLDivElement} otherHeading
+ * @property {HTMLUListElement} others
+ * @property {HTMLDivElement} resizeHandle
+ * @property {HTMLButtonElement} collapseBtn
+ * @property {HTMLButtonElement} reopenBtn
+ */
+
+/**
+ * The wiring object every module factory receives. panel.js builds it, then
+ * stores each factory's result back onto it; modules reach siblings lazily
+ * through it, so they're all present by the time any event fires.
+ * @typedef {Object} Ctx
+ * @property {Els} els
+ * @property {Cfg} cfg
+ * @property {(text: string) => void} runYouTubeSearch
+ * @property {ReturnType<typeof YTSP.createPanelChrome>} chrome
+ * @property {ReturnType<typeof YTSP.createTypeahead>} typeahead
+ * @property {ReturnType<typeof YTSP.createReleases>} releases
+ * @property {ReturnType<typeof YTSP.createFilters>} filters
+ * @property {ReturnType<typeof YTSP.createSubfilters>} subfilters
+ * @property {ReturnType<typeof YTSP.createSongFilter>} songFilter
+ * @property {ReturnType<typeof YTSP.createOtherArtists>} other
+ */

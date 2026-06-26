@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  const NS = (window.__ytSearchPanelInject = window.__ytSearchPanelInject || {});
+  const NS = /** @type {any} */ (window.__ytSearchPanelInject = window.__ytSearchPanelInject || {});
 
   // Search-result item types. yt-lockup-view-model is YouTube's newer card,
   // used for playlists and "Mix" entries that can sit at the very top of the
@@ -20,10 +20,11 @@
 
   // The first result's focusable link. Prefer the title link, fall back to the
   // thumbnail / any link.
+  /** @returns {HTMLElement | null} */
   function firstResultLink() {
     const item = firstResultItem();
     if (!item) return null;
-    return (
+    return /** @type {HTMLElement | null} */ (
       item.querySelector("a#video-title-link") ||
       item.querySelector("a#video-title") ||
       item.querySelector("a#thumbnail") ||

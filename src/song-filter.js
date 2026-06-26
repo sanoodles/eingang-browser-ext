@@ -4,7 +4,7 @@
 // asks releases to rebuild the visible list. Owns its input element's events.
 (function () {
   "use strict";
-  const YTSP = (window.YTSP = window.YTSP || {});
+  const YTSP = /** @type {any} */ (window.YTSP = window.YTSP || {});
 
   /** @param {Ctx} ctx */
   YTSP.createSongFilter = function (ctx) {
