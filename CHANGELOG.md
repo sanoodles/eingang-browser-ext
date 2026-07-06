@@ -6,6 +6,28 @@ All notable changes are documented here. The format follows
 without a conventional type is intentionally left out. The 1.0.0 and 1.1.0
 entries predate that workflow and were written by hand.
 
+## [1.1.1] - 2026-07-06
+
+### Bug Fixes
+
+- **a11y:** some color contrast improvements ([`b49c515`](https://github.com/sanoodles/eingang-browser-ext/commit/b49c515))
+- **a11y:** some color contrast improvements ([`f899611`](https://github.com/sanoodles/eingang-browser-ext/commit/f899611))
+
+### Refactoring
+
+- **css:** dedupe focus ring, row, and ellipsis styles ([`358c02f`](https://github.com/sanoodles/eingang-browser-ext/commit/358c02f))
+- **css:** rewrite CSS using some modern CSS features for readability ([`6500cda`](https://github.com/sanoodles/eingang-browser-ext/commit/6500cda))
+
+### Documentation
+
+- make code comments concise across the codebase ([`0b52025`](https://github.com/sanoodles/eingang-browser-ext/commit/0b52025))
+
+### Chores
+
+- **screenshot:** capture the post-click state ([`7b570bd`](https://github.com/sanoodles/eingang-browser-ext/commit/7b570bd))
+- **release:** infer version bump and generate CHANGELOG from conventional commits ([`6439130`](https://github.com/sanoodles/eingang-browser-ext/commit/6439130))
+- **types:** type-check the JSDoc with tsc --noEmit (no build step) ([`7e67f15`](https://github.com/sanoodles/eingang-browser-ext/commit/7e67f15))
+
 ## [1.1.0] - 2026-06-21
 
 ### Features
