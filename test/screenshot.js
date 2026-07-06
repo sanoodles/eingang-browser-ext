@@ -1,5 +1,7 @@
-// Captures a 1280x800 Chrome Web Store screenshot of the populated panel on real
-// YouTube, reusing the e2e launch approach. Output: dist/screenshot-1280x800.png.
+// Captures a 1280x800 Chrome Web Store screenshot of the panel driving YouTube:
+// search an artist, click a release, then shoot once YouTube's results and the
+// panel's "Other artists" have filled. Reuses the e2e launch approach.
+// Output: dist/screenshot-1280x800.png.
 // Run: node test/screenshot.js  (needs CHROME_BIN or a cached Playwright Chromium;
 // hits live YouTube + Discogs, like the e2e test).
 const { chromium } = require("playwright-core");
@@ -103,7 +105,22 @@ async function launchChrome(bin) {
     const exact = page.locator(".yt-search-panel-result", { hasText: /^Daft Punk$/ });
     await ((await exact.count()) ? exact.first() : page.locator(".yt-search-panel-result").first()).click();
     await page.waitForSelector(".yt-rel", { timeout: 20000 });
-    await sleep(2500); // let the release list render
+    await sleep(2000); // let the release list render
+
+    // Click a release: drives YouTube's search box and fills "Other artists".
+    await page.locator(".yt-rel").first().click();
+    // Wait for the search to land and its results + the Other artists section.
+    await page.waitForFunction(
+      `!!new URLSearchParams(location.search).get('search_query')`,
+      { timeout: 15000 }
+    );
+    await page.waitForSelector("ytd-video-renderer", { timeout: 20000 });
+    await page.waitForFunction(
+      `/^Other artists on /.test((document.querySelector('.yt-search-panel-subheading') || {}).textContent || '')`,
+      { timeout: 15000 }
+    );
+    await sleep(2000); // let thumbnails paint
+
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     await page.screenshot({ path: OUT });
     console.log("wrote", OUT);
