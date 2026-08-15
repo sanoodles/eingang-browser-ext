@@ -6,6 +6,12 @@ All notable changes are documented here. The format follows
 without a conventional type is intentionally left out. The 1.0.0 and 1.1.0
 entries predate that workflow and were written by hand.
 
+## [1.2.0] - 2026-08-15
+
+### Features
+
+- **panel:** icon toggles, and focus the artist box on open ([`4a0eb90`](https://github.com/sanoodles/eingang-browser-ext/commit/4a0eb90))
+
 ## [1.1.1] - 2026-07-06
 
 ### Bug Fixes
