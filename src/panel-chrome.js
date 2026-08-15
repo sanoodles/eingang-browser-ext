@@ -106,8 +106,27 @@
       save();
     });
 
-    els.collapseBtn.addEventListener("click", () => setCollapsed(true));
-    els.reopenBtn.addEventListener("click", () => setCollapsed(false));
+    // Focus follows the toggle: opening lands in the artist box ready to type,
+    // closing hands focus to the reopen tab (the button just clicked is now
+    // display:none, which would otherwise dump focus back on <body>). Only here,
+    // not in setCollapsed(), so restoring a collapsed panel on load steals no
+    // focus. stopResultFocus first, or a search's result-focus poll takes it
+    // straight back. preventScroll: both controls are already in view; scrolling
+    // YouTube on a toggle would be jarring. Collapsing right after a search can
+    // still lose the tab: widening the page re-renders YouTube's masthead, which
+    // then restores focus to its own search button — YouTube's call, not ours.
+    els.collapseBtn.addEventListener("click", () => {
+      setCollapsed(true);
+      ctx.stopResultFocus();
+      els.reopenBtn.focus({ preventScroll: true });
+    });
+
+    els.reopenBtn.addEventListener("click", () => {
+      setCollapsed(false);
+      ctx.stopResultFocus();
+      els.input.focus({ preventScroll: true });
+      els.input.select(); // the old artist name is typed over, not edited
+    });
 
     // Re-clamp if the window shrinks below the current fit.
     window.addEventListener("resize", () => {

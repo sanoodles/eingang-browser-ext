@@ -111,6 +111,14 @@
     tick();
   }
 
+  // The panel took keyboard focus (it was opened, or the user clicked into the
+  // artist box). Stop chasing the first result: the poll would otherwise yank
+  // focus straight back out, for up to 6 s after a search.
+  document.addEventListener("yt-search-panel-stop-focus", () => {
+    if (pendingTimer) clearInterval(pendingTimer);
+    pendingTimer = null;
+  });
+
   document.addEventListener("yt-search-panel-run", () => {
     const query = document.documentElement.getAttribute(
       "data-yt-search-panel-query"

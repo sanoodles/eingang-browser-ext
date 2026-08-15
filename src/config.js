@@ -108,6 +108,7 @@
  * @property {Els} els
  * @property {Cfg} cfg
  * @property {(text: string) => void} runYouTubeSearch
+ * @property {() => void} stopResultFocus
  * @property {ReturnType<typeof YTSP.createPanelChrome>} chrome
  * @property {ReturnType<typeof YTSP.createTypeahead>} typeahead
  * @property {ReturnType<typeof YTSP.createReleases>} releases

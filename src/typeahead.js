@@ -146,6 +146,10 @@
       }
     });
 
+    // Typing here beats chasing YouTube's results: a search's focus poll would
+    // otherwise pull the caret out of the box mid-word (inject-focus.js).
+    input.addEventListener("focus", () => ctx.stopResultFocus());
+
     input.addEventListener("blur", () => setTimeout(closeSuggestions, BLUR_CLOSE_MS));
 
     return { closeSuggestions, setQueryAndSearch };

@@ -17,11 +17,16 @@ interface Window {
 declare const YTSP: any;
 
 // Minimal shape of the chrome.* API surface the panel actually uses
-// (panel-chrome.js: persist width + collapsed state). Avoids a dependency on
-// the full @types/chrome; widen this if more of the API gets used.
+// (panel-chrome.js: persist width + collapsed state; panel.js: the reopen tab's
+// icon URL). Avoids a dependency on the full @types/chrome; widen this if more
+// of the API gets used.
 declare namespace chrome.storage {
   const local: {
     get(keys: string[], callback: (items: Record<string, unknown>) => void): void;
     set(items: Record<string, unknown>): void;
   };
+}
+
+declare namespace chrome.runtime {
+  function getURL(path: string): string;
 }

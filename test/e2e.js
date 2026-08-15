@@ -89,6 +89,9 @@ const chromeState = `(() => {
     reopenVisible: disp(reopen) !== 'none',
     collapseExpanded: collapseBtn && collapseBtn.getAttribute('aria-expanded'),
     reopenHidden: reopen && reopen.getAttribute('aria-hidden'),
+    // The tab's extension icon only loads while it stays in web_accessible_resources.
+    reopenIconLoaded: !!reopen?.querySelector('img')?.naturalWidth,
+    focused: document.activeElement && (document.activeElement.id || document.activeElement.className),
     width: parseInt(root.style.getPropertyValue('--yt-panel-width'), 10) || null,
     innerWidth: window.innerWidth,
   };
@@ -386,6 +389,11 @@ async function run(page) {
     cs.collapsed && !cs.panelVisible && cs.reopenVisible, JSON.stringify(cs));
   check("collapse flips the toggle/tab aria state",
     cs.collapseExpanded === "false" && cs.reopenHidden === "false", JSON.stringify(cs));
+  check("the reopen tab shows the extension icon",
+    cs.reopenIconLoaded, JSON.stringify(cs));
+  // Collapsing also focuses the reopen tab, but that isn't asserted: widening the
+  // page re-renders YouTube's masthead, which restores focus to its own search
+  // button about half a second later when a search just ran (as it has, step 8).
 
   // The reopen tab brings the panel back and hides itself again.
   await page.locator("#yt-search-panel-reopen").click();
@@ -395,6 +403,8 @@ async function run(page) {
     !cs.collapsed && cs.panelVisible && !cs.reopenVisible, JSON.stringify(cs));
   check("reopen restores the aria state",
     cs.collapseExpanded === "true" && cs.reopenHidden === "true", JSON.stringify(cs));
+  check("reopen puts the caret in the artist box",
+    cs.focused === "yt-search-panel-input", JSON.stringify(cs));
 
   // Dragging the left edge outward widens the panel to the cursor position.
   const edgeX = await dragResize(page, -120);

@@ -69,7 +69,7 @@ html[dark] {
     font-weight: 500;
   }
 
-  /* Collapse button: a round, subtle chevron that hides the panel. */
+  /* Collapse button: a round, subtle side-panel glyph that hides the panel. */
   .yt-search-panel-collapse {
     flex: 0 0 auto;
     width: 28px;
@@ -82,10 +82,11 @@ html[dark] {
     border-radius: 50%;
     background: transparent;
     color: var(--yt-panel-text-2);
-    font-family: inherit;
-    font-size: 22px;
-    line-height: 1;
     cursor: pointer;
+
+    & > svg {
+      display: block;
+    }
 
     &:hover {
       background: var(--yt-panel-hover);
@@ -240,8 +241,9 @@ html[dark] {
   }
 }
 
-/* Floating reopen tab, shown only while collapsed. Reads the shared theme vars on
-   <html>; its background uses --yt-panel-surface (matches the tab's dark shade). */
+/* Floating reopen tab, shown only while collapsed, wearing the extension's icon
+   (panel.js). Reads the shared theme vars on <html>; its background uses
+   --yt-panel-surface (matches the tab's dark shade). */
 #yt-search-panel-reopen {
   position: fixed;
   /* Just below YouTube's ~56px masthead, near where the collapse button was (not
@@ -252,12 +254,12 @@ html[dark] {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 72px;
+  width: 38px;
+  height: 48px;
   padding: 0;
   border: 1px solid var(--yt-panel-border);
   border-right: none;
-  border-radius: 8px 0 0 8px;
+  border-radius: 10px 0 0 10px;
   background: var(--yt-panel-surface);
   color: var(--yt-panel-text);
   font-family: "Roboto", Arial, sans-serif;
@@ -266,11 +268,18 @@ html[dark] {
   cursor: pointer;
   box-shadow: -2px 0 12px var(--yt-panel-shadow);
 
+  & > img {
+    display: block;
+    width: 28px;
+    height: 28px;
+  }
+
   html.ytsp-collapsed & {
     display: flex;
   }
 
   &:hover {
+    background: var(--yt-panel-hover-2);
     color: var(--yt-panel-accent);
   }
 
