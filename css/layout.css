@@ -69,3 +69,49 @@ tp-yt-paper-dialog {
   :is(#yt-search-panel-ext, #yt-search-panel-reopen) {
   display: none !important;
 }
+
+/* YouTube sizes a channel page's grid from the *viewport* width, which knows
+   nothing about the panel: at 1920px with the panel open it still picks 6
+   columns (1308px) for a 1265px-wide column, and the centred box spills ~21px
+   under the guide — worse at narrower windows. Re-snap it to whole columns of
+   the width ytd-app actually got. 218px is YouTube's column step; if that ever
+   changes the snap is merely coarse, never wider than the column.
+
+   Both states share one left gutter — the one the panel-open column produces —
+   so collapsing the panel grows the grid rightwards instead of re-centring it
+   and sliding every thumbnail sideways. */
+html:not(.ytsp-collapsed) {
+  --ytsp-open-column: 100%;
+}
+
+html.ytsp-collapsed {
+  --ytsp-open-column: calc(100% - var(--yt-panel-width, 400px));
+}
+
+ytd-browse[page-subtype="channels"]
+  :is(ytd-two-column-browse-results-renderer, tp-yt-paper-tabs#tabs) {
+  --ytsp-grid: max(218px, round(down, var(--ytsp-open-column), 218px));
+  --ytsp-gutter: calc((var(--ytsp-open-column) - var(--ytsp-grid)) / 2);
+  margin-inline: var(--ytsp-gutter) auto !important;
+  max-width: calc(100% - var(--ytsp-gutter)) !important;
+}
+
+/* Only the grid gains columns when the panel goes away; pin the tab strip in
+   both states, or its labels drift as paper-tabs re-measures itself. */
+html:not(.ytsp-collapsed)
+  ytd-browse[page-subtype="channels"] ytd-two-column-browse-results-renderer,
+ytd-browse[page-subtype="channels"] tp-yt-paper-tabs#tabs {
+  width: var(--ytsp-grid) !important;
+}
+
+/* Search results centre inside their column too, so collapsing the panel slides
+   every row sideways. Same trick: hold the gutter the panel-open column gives
+   them. 1250px is the cap YouTube puts on the list itself (#primary); matching it
+   here also stops #primary re-centring inside a wider parent. A stale value only
+   shifts both states together — it can't overflow or unpin them. */
+ytd-two-column-search-results-renderer {
+  max-width: 1250px !important;
+  margin-inline: calc(
+      (var(--ytsp-open-column) - min(1250px, var(--ytsp-open-column))) / 2
+    ) auto !important;
+}
