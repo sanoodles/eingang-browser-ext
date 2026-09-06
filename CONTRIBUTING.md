@@ -53,5 +53,24 @@ The commit and tag stay **local**. Then ship the build manually:
    git push --follow-tags
    ```
 
+5. Update `master` so it carries the release — merge the branch you released
+   from, through a pull request or directly:
+
+   ```bash
+   git checkout master
+   git merge --no-ff release/<version>
+   git push origin master
+   ```
+
+   Nothing in the pipeline does this: `npm run release` stops at the local
+   commit and tag, so this is the step that gets skipped. v1.2.0 shipped from
+   its own branch and sat unmerged until v1.3.0, leaving `master` two releases
+   behind.
+   Confirm it landed:
+
+   ```bash
+   git merge-base --is-ancestor v<version> origin/master && echo "on master"
+   ```
+
 `npm run build` on its own (no version bump) re-zips the current version if you
 need to re-upload.

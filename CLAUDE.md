@@ -40,7 +40,7 @@ BUMP=minor npm run release  # force it (also BUMP=major, BUMP=patch, or BUMP=2.0
 
 Only the 11 standard Conventional Commit types (`feat`, `fix`, `perf`, `refactor`, `docs`, `build`, `ci`, `test`, `style`, `chore`, `revert`) reach the changelog, grouped under those headings with breaking changes called out on top; any other prefix — or a plain, non-conventional message — is left out, which is the way to keep a commit off the changelog.
 
-`release` commits + tags locally only and stops at the built zip — there's no automated upload. Ship by hand: upload `dist/eingang-<version>.zip` at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), submit for Google's review (not instant), then `git push --follow-tags`. The step-by-step how-to lives in `CONTRIBUTING.md`; keep the two in sync.
+`release` commits + tags locally only and stops at the built zip — there's no automated upload. Ship by hand: upload `dist/eingang-<version>.zip` at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), submit for Google's review (not instant), then `git push --follow-tags` and merge the release branch into `master` — nothing automates that last step, which is how v1.2.0 sat unmerged until v1.3.0. The step-by-step how-to lives in `CONTRIBUTING.md`; keep the two in sync.
 
 ## Architecture
 
