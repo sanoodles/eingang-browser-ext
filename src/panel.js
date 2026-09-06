@@ -17,6 +17,28 @@
     document.dispatchEvent(new CustomEvent("yt-search-panel-run"));
   }
 
+  // Claim keyboard focus for the panel: the same helper keeps re-focusing
+  // YouTube's first result for seconds after a search (inject-focus.js).
+  function stopResultFocus() {
+    document.dispatchEvent(new CustomEvent("yt-search-panel-stop-focus"));
+  }
+
+  // Side-panel glyph (a frame with its right pane filled) for the collapse
+  // button. Built node-by-node, not via innerHTML: YouTube enforces Trusted Types.
+  function sidebarIcon() {
+    const el = (tag, attrs) => {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+      return node;
+    };
+    const svg = el("svg", { viewBox: "0 0 24 24", width: "20", height: "20", fill: "none", stroke: "currentColor", "stroke-width": "1.6", "aria-hidden": "true", focusable: "false" });
+    svg.append(
+      el("rect", { x: "3", y: "5", width: "18", height: "14", rx: "2.5" }),
+      el("path", { d: "M14 5.9h4.7a1.7 1.7 0 0 1 1.7 1.7v8.9a1.7 1.7 0 0 1-1.7 1.7H14z", fill: "currentColor", stroke: "none" })
+    );
+    return svg;
+  }
+
   function buildPanel() {
     if (document.getElementById(cfg.PANEL_ID)) return;
     if (!document.body) return;
@@ -43,10 +65,10 @@
     const collapseBtn = document.createElement("button");
     collapseBtn.type = "button";
     collapseBtn.className = "yt-search-panel-collapse";
-    collapseBtn.textContent = "›";
     collapseBtn.title = "Hide panel";
     collapseBtn.setAttribute("aria-label", "Hide panel");
     collapseBtn.setAttribute("aria-expanded", "true");
+    collapseBtn.appendChild(sidebarIcon());
 
     header.appendChild(heading);
     header.appendChild(collapseBtn);
@@ -141,14 +163,22 @@
     document.body.appendChild(panel);
 
     // Floating reopen tab; shown by CSS only while collapsed, so it lives
-    // outside the panel to stay reachable when the panel is hidden.
+    // outside the panel to stay reachable when the panel is hidden. It wears the
+    // extension's own icon, so it reads as "this extension" rather than a stray
+    // chevron on YouTube's edge.
     const reopenBtn = document.createElement("button");
     reopenBtn.type = "button";
     reopenBtn.id = "yt-search-panel-reopen";
-    reopenBtn.textContent = "‹";
+    reopenBtn.textContent = "‹"; // fallback if the icon URL can't be resolved
     reopenBtn.title = "Show artist search panel";
     reopenBtn.setAttribute("aria-label", "Show artist search panel");
     reopenBtn.setAttribute("aria-hidden", "true");
+    try {
+      const logo = document.createElement("img");
+      logo.src = chrome.runtime.getURL("icons/icon48.png"); // web_accessible_resources
+      logo.alt = "";
+      reopenBtn.replaceChildren(logo);
+    } catch {}
     document.body.appendChild(reopenBtn);
 
     // Shared context; modules reference each other lazily via ctx, so creation
@@ -157,9 +187,10 @@
     const els = { input, suggestions, spinner, filters, subfilters, songFilter, status, releases, otherHeading, others, resizeHandle, collapseBtn, reopenBtn };
     // Cast, not annotate: the sibling results (ctx.releases, …) are filled in
     // just below, so the literal is intentionally partial.
-    const ctx = /** @type {Ctx} */ ({ els, cfg, runYouTubeSearch });
+    const ctx = /** @type {Ctx} */ ({ els, cfg, runYouTubeSearch, stopResultFocus });
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);
+    ctx.history = YTSP.createHistory(ctx);
     ctx.releases = YTSP.createReleases(ctx);
     ctx.filters = YTSP.createFilters(ctx);
     ctx.subfilters = YTSP.createSubfilters(ctx);

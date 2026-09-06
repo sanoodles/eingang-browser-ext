@@ -84,6 +84,7 @@
     }
     function selectArtist(item) {
       if (!item || !item.id) return;
+      ctx.history.record(item); // recent artists, offered when the box is empty
       els.input.value = item.name;
       ctx.typeahead.closeSuggestions();
       currentArtistId = item.id;

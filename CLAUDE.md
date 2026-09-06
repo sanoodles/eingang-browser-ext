@@ -51,7 +51,7 @@ Content scripts run in **two worlds** (see `manifest.json` `content_scripts`):
 - **Isolated** — all panel UI (everything in `src/` except the two `inject-*` files). Shares one namespace, `window.YTSP`.
 - **MAIN** — `inject-search.js` + `inject-focus.js`, sharing `window.__ytSearchPanelInject`. They exist *only* because YouTube's framework-bound search input ignores values set from the isolated world.
 
-The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` writes the query to a `data-yt-search-panel-query` attribute on `<html>` and fires a `yt-search-panel-run` event; `inject-focus.js` hears it, calls `inject-search.js` (which sets the value via the native setter, dispatches `input`, then synthesizes Enter), and polls to focus the first result.
+The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` writes the query to a `data-yt-search-panel-query` attribute on `<html>` and fires a `yt-search-panel-run` event; `inject-focus.js` hears it, calls `inject-search.js` (which sets the value via the native setter, dispatches `input`, then synthesizes Enter), and polls to focus the first result. A second event, `yt-search-panel-stop-focus` (`stopResultFocus` on `ctx`), ends that poll: the panel fires it whenever it claims the keyboard itself — reopened, or the artist box focused — since the poll would otherwise pull focus straight back out for up to 6s.
 
 ### `YTSP` factory/`ctx` wiring
 
@@ -60,6 +60,10 @@ The worlds can't call each other. Bridge: `panel.js`'s `runYouTubeSearch(text)` 
 ### Releases: one cache, filters narrow it, paging fills it
 
 `releases.js` fetches `/artists/{id}/releases` (paged, newest first) into one `cache` of **all** releases. Three independent filters, each testing a release's Discogs `role`, narrow what renders: `filters.js` (category chips — the coarse role buckets), `subfilters.js` (role chips, built only from roles present in the cache), and `song-filter.js` (client-side title substring, no network). `appendMatching()` renders releases passing all three; any filter change calls `setFilter()` to rebuild from cache instantly. `fillIfHungry()` keeps auto-paging while fewer than `RELEASES_FILL_MIN` rows match and pages remain — so a restrictive filter can page through the whole discography. Auto-paging (`paging.js`) watches the last row via IntersectionObserver and on keyboard focus reaching it; it and `other-artists.js` build on `roving.js` (one row tabbable, arrows move focus).
+
+### Recent artists
+
+`history.js` keeps the last `HISTORY_MAX` artists actually opened in `chrome.storage.local` (key `STORE_HISTORY`), newest first, deduped by Discogs id — `releases.js`'s `selectArtist()` records each pick. The typeahead shows them in its own dropdown whenever the artist box is empty and focused. That's the *same* `<ul>` the search results use, in a second mode (`ytsp-history-mode`), since the two states are mutually exclusive; every row is a `role="option"`, the clear-all included, so arrows and Enter reach it and `items` stays 1:1 with the list's children. Storing the id, not the typed query, is the point: picking a recent artist goes straight to `/artists/{id}/releases` with no lookup request. Per-row removal is the `×` button (mouse) or Delete on the highlighted row — Tab can't reach the button, since leaving the box closes the dropdown.
 
 ### CSS
 
@@ -73,13 +77,14 @@ Unauthenticated: works, but rate-limited (~25/min) and returns no thumbnails; CO
 
 | File | Role |
 | --- | --- |
-| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches, `storage` permission. `js` order is load order. |
+| `manifest.json` | Manifest V3; content scripts (two worlds), CSS, matches, `storage` permission, `icons/icon48.png` as a web-accessible resource (the reopen tab shows it). `js` order is load order. |
 | `src/config.js` | Shared constants, JSDoc typedefs (`Cfg`/`Els`/`Release`/`Ctx`), artist-name helpers (`cleanArtistName`/`isVarious`), and the `YTSP` namespace object. |
-| `src/panel-chrome.js` | Collapse/expand toggle + draggable left edge to resize the panel; persists width & collapsed state. |
+| `src/panel-chrome.js` | Collapse/expand toggle (moves focus to the artist box on open) + draggable left edge to resize the panel; persists width & collapsed state. |
 | `src/roving.js` | Generic roving-tabindex keyboard navigation for a list. |
 | `src/paging.js` | Auto-paging (IntersectionObserver) + loading row for the releases list. |
 | `src/release-row.js` | Renders one release row. |
-| `src/typeahead.js` | Artist search box: debounced Discogs lookup + suggestion dropdown. |
+| `src/typeahead.js` | Artist search box: debounced Discogs lookup + suggestion dropdown; the same dropdown lists recent artists while the box is empty. |
+| `src/history.js` | Recent artists: records each pick, persists them, serves/removes/clears them. |
 | `src/filters.js` | Category filter chips (Releases/Appearances/Unofficial/Credits). |
 | `src/subfilters.js` | Role sub-filter chips, built from the roles present in a category. |
 | `src/song-filter.js` | Text filter box: case-insensitive substring match on release titles. |

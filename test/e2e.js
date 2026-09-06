@@ -5,7 +5,9 @@
 //   → role sub-filter (Remixes) → feedback link present
 //   → activate a release (drives YouTube's search + fills "Other artists")
 //   → panel chrome (collapse/reopen toggle, drag- and keyboard-resize,
-//     persist across reload).
+//     persist across reload)
+//   → recent artists (empty box offers past picks; picking one skips the Discogs
+//     lookup; remove one, clear all).
 //
 // It launches its own headless Chrome with the unpacked extension and tears it
 // down. It hits live YouTube + the Discogs API, so it needs network and is
@@ -74,6 +76,23 @@ const panelState = `(() => {
   };
 })()`;
 
+// Artist dropdown (typeahead.js) state, covering both what it shows: Discogs
+// results while typing, and the recent-artists list while the box is empty.
+const dropdownState = `(() => {
+  const input = document.querySelector('.yt-search-panel-input');
+  const ul = document.querySelector('.yt-search-panel-results');
+  const rows = [...document.querySelectorAll('.yt-search-panel-result')];
+  return {
+    open: !!ul && !ul.hidden,
+    historyMode: !!ul && ul.classList.contains('ytsp-history-mode'),
+    expanded: input && input.getAttribute('aria-expanded'),
+    inputValue: (input || {}).value || '',
+    entries: rows.filter(r => r.classList.contains('yt-search-panel-history'))
+      .map(r => (r.querySelector('.yt-search-panel-history-name') || {}).textContent || ''),
+    hasClearAll: rows.some(r => r.classList.contains('yt-search-panel-clear')),
+  };
+})()`;
+
 // Panel-chrome (panel-chrome.js) state: the collapsed class + width custom
 // property on <html>, plus the visibility/aria of the toggle and reopen tab.
 // display-based visibility (not offsetParent) because the reopen tab is fixed.
@@ -89,6 +108,9 @@ const chromeState = `(() => {
     reopenVisible: disp(reopen) !== 'none',
     collapseExpanded: collapseBtn && collapseBtn.getAttribute('aria-expanded'),
     reopenHidden: reopen && reopen.getAttribute('aria-hidden'),
+    // The tab's extension icon only loads while it stays in web_accessible_resources.
+    reopenIconLoaded: !!reopen?.querySelector('img')?.naturalWidth,
+    focused: document.activeElement && (document.activeElement.id || document.activeElement.className),
     width: parseInt(root.style.getPropertyValue('--yt-panel-width'), 10) || null,
     innerWidth: window.innerWidth,
   };
@@ -201,6 +223,14 @@ async function dragResize(page, dx) {
 }
 
 async function run(page) {
+  // Count Discogs artist lookups, to prove a recent-artist pick skips one. The
+  // content script's fetches are same-frame, so they surface here; the "are
+  // observable" check below keeps a silent zero from faking a pass.
+  let searchCalls = 0;
+  page.on("request", (r) => {
+    if (r.url().startsWith("https://api.discogs.com/database/search")) searchCalls++;
+  });
+
   // 1. Panel injected on a plain YouTube page.
   await page.goto("https://www.youtube.com/?hl=en&gl=US", {
     waitUntil: "domcontentloaded",
@@ -236,6 +266,7 @@ async function run(page) {
     return sp && sp.hidden && inp.getAttribute('aria-busy') === 'false';
   })()`, { timeout: 15000 }));
   check("spinner clears once suggestions arrive", spinnerCleared);
+  check("Discogs artist lookups are observable", searchCalls > 0, "calls=" + searchCalls);
 
   // 2b. Dropdown highlight: ArrowDown/Up move the 'active' suggestion. Assert the
   // position only, then select by click below to keep the exact "Daft Punk" match.
@@ -386,6 +417,11 @@ async function run(page) {
     cs.collapsed && !cs.panelVisible && cs.reopenVisible, JSON.stringify(cs));
   check("collapse flips the toggle/tab aria state",
     cs.collapseExpanded === "false" && cs.reopenHidden === "false", JSON.stringify(cs));
+  check("the reopen tab shows the extension icon",
+    cs.reopenIconLoaded, JSON.stringify(cs));
+  // Collapsing also focuses the reopen tab, but that isn't asserted: widening the
+  // page re-renders YouTube's masthead, which restores focus to its own search
+  // button about half a second later when a search just ran (as it has, step 8).
 
   // The reopen tab brings the panel back and hides itself again.
   await page.locator("#yt-search-panel-reopen").click();
@@ -395,6 +431,8 @@ async function run(page) {
     !cs.collapsed && cs.panelVisible && !cs.reopenVisible, JSON.stringify(cs));
   check("reopen restores the aria state",
     cs.collapseExpanded === "true" && cs.reopenHidden === "true", JSON.stringify(cs));
+  check("reopen puts the caret in the artist box",
+    cs.focused === "yt-search-panel-input", JSON.stringify(cs));
 
   // Dragging the left edge outward widens the panel to the cursor position.
   const edgeX = await dragResize(page, -120);
@@ -449,6 +487,75 @@ async function run(page) {
     JSON.stringify(cs));
   check("panel width persists across reload", cs.width === savedWidth,
     "saved=" + savedWidth + " restored=" + cs.width);
+
+  // 10. Recent artists (history.js): the artists picked so far are stored, and
+  // an empty artist box offers them back. The panel is still collapsed from the
+  // reload above, so reopening focuses an empty box — the trigger.
+  await page.locator("#yt-search-panel-reopen").click();
+  // The stored list arrives from chrome.storage's async get(), which can land
+  // after the focus that opened the (then empty) dropdown; history.js re-renders.
+  const historyShown = await waitOk(() => page.waitForFunction(`(() => {
+    const ul = document.querySelector('.yt-search-panel-results');
+    return ul && !ul.hidden && ul.classList.contains('ytsp-history-mode');
+  })()`, { timeout: 10000 }));
+  let d = await page.evaluate(dropdownState);
+  check("focusing the empty box offers the recent artists",
+    historyShown && d.open && d.historyMode && d.expanded === "true", JSON.stringify(d));
+  check("the recent list survived the reload",
+    d.entries.includes("Daft Punk"), JSON.stringify(d.entries));
+  check("the recent list offers a clear-all row", d.hasClearAll, JSON.stringify(d));
+
+  // Picking a recent artist goes straight to the releases — no artist lookup,
+  // which is the point of storing the Discogs id rather than the typed query.
+  const callsBefore = searchCalls;
+  await page.locator(".yt-search-panel-history-name", { hasText: /^Daft Punk$/ }).first().click();
+  await waitOk(() => page.waitForSelector(".yt-rel", { timeout: 20000 }));
+  await sleep(800);
+  s = await page.evaluate(panelState);
+  d = await page.evaluate(dropdownState);
+  check("picking a recent artist loads their releases",
+    s.rowCount > 0 && d.inputValue === "Daft Punk", "rows=" + s.rowCount + " box=" + d.inputValue);
+  check("picking a recent artist skips the Discogs lookup",
+    searchCalls === callsBefore, callsBefore + " -> " + searchCalls);
+
+  // A second artist, to tell the per-entry remove apart from the clear-all.
+  await page.fill(".yt-search-panel-input", "Aphex Twin");
+  await waitOk(() => page.waitForSelector(".yt-search-panel-result", { timeout: 15000 }));
+  const aphex = page.locator(".yt-search-panel-result", { hasText: /^Aphex Twin$/ });
+  await ((await aphex.count()) ? aphex.first()
+    : page.locator(".yt-search-panel-result").first()).click();
+  await waitOk(() => page.waitForSelector(".yt-rel", { timeout: 20000 }));
+  await sleep(800);
+
+  // Emptying the box brings the list back, newest pick first.
+  await page.fill(".yt-search-panel-input", "");
+  await sleep(300);
+  d = await page.evaluate(dropdownState);
+  check("emptying the box brings the recent list back",
+    d.open && d.historyMode, JSON.stringify(d));
+  check("recent artists list newest first",
+    d.entries.length === 2 && /^Aphex Twin/.test(d.entries[0]) && d.entries[1] === "Daft Punk",
+    JSON.stringify(d.entries));
+
+  // The per-row × drops just that entry and leaves the dropdown up.
+  await page.locator(".yt-search-panel-history-remove").first().click();
+  await sleep(300);
+  d = await page.evaluate(dropdownState);
+  check("removing one recent artist leaves the rest",
+    d.open && d.entries.length === 1 && d.entries[0] === "Daft Punk", JSON.stringify(d));
+
+  // Clear-all empties the list and closes the dropdown; a fresh focus finds
+  // nothing to offer.
+  await page.locator(".yt-search-panel-clear").click();
+  await sleep(300);
+  d = await page.evaluate(dropdownState);
+  check("clear-all closes the recent list", !d.open, JSON.stringify(d));
+  await page.evaluate(`document.querySelector('.yt-search-panel-input').blur()`);
+  await page.locator(".yt-search-panel-input").click();
+  await sleep(300);
+  d = await page.evaluate(dropdownState);
+  check("an empty recent list opens nothing", !d.open && d.expanded === "false",
+    JSON.stringify(d));
 }
 
 (async () => {

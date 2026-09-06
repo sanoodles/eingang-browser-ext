@@ -26,8 +26,26 @@
       return Math.min(max, Math.max(cfg.PANEL_MIN_WIDTH, Math.round(px)));
     }
 
+    // YouTube's app-header caches its own box and only re-reads it on window
+    // resize, so after a collapse or a drag it keeps the width it had before —
+    // leaving the channel tab strip out of line with the content under it. No
+    // real resize fires for a CSS-only reflow, so nudge it. The guard keeps our
+    // own resize listener below from bouncing the event back.
+    let notifying = false;
+
+    function notifyReflow() {
+      if (notifying) return;
+      notifying = true;
+      try {
+        window.dispatchEvent(new Event("resize"));
+      } finally {
+        notifying = false;
+      }
+    }
+
     function applyWidth() {
       root.style.setProperty("--yt-panel-width", `${width}px`);
+      notifyReflow();
     }
 
     function isCollapsed() {
@@ -38,6 +56,7 @@
       root.classList.toggle("ytsp-collapsed", collapsed);
       els.collapseBtn.setAttribute("aria-expanded", String(!collapsed));
       els.reopenBtn.setAttribute("aria-hidden", String(!collapsed));
+      notifyReflow();
       save();
     }
 
@@ -106,8 +125,27 @@
       save();
     });
 
-    els.collapseBtn.addEventListener("click", () => setCollapsed(true));
-    els.reopenBtn.addEventListener("click", () => setCollapsed(false));
+    // Focus follows the toggle: opening lands in the artist box ready to type,
+    // closing hands focus to the reopen tab (the button just clicked is now
+    // display:none, which would otherwise dump focus back on <body>). Only here,
+    // not in setCollapsed(), so restoring a collapsed panel on load steals no
+    // focus. stopResultFocus first, or a search's result-focus poll takes it
+    // straight back. preventScroll: both controls are already in view; scrolling
+    // YouTube on a toggle would be jarring. Collapsing right after a search can
+    // still lose the tab: widening the page re-renders YouTube's masthead, which
+    // then restores focus to its own search button — YouTube's call, not ours.
+    els.collapseBtn.addEventListener("click", () => {
+      setCollapsed(true);
+      ctx.stopResultFocus();
+      els.reopenBtn.focus({ preventScroll: true });
+    });
+
+    els.reopenBtn.addEventListener("click", () => {
+      setCollapsed(false);
+      ctx.stopResultFocus();
+      els.input.focus({ preventScroll: true });
+      els.input.select(); // the old artist name is typed over, not edited
+    });
 
     // Re-clamp if the window shrinks below the current fit.
     window.addEventListener("resize", () => {

@@ -16,6 +16,8 @@ releases (newest first), and click one to run an in-page YouTube search for it.
   YouTube's own search box, no reload, and focus the first result.
 - **Resize & collapse** — drag the panel's left edge or collapse it to a tab; both
   are remembered.
+- **Recent artists** — the last few you opened are offered whenever the artist
+  box is empty; picking one skips the Discogs lookup.
 
 It's fully keyboard-navigable: arrows move through suggestions, lists, and chips;
 `Enter`/`Space` activate; `Esc` steps back out.
@@ -29,7 +31,7 @@ then open or reload a `youtube.com` tab — the panel appears on the right.
 
 - **Discogs API** requests are unauthenticated and rate-limited (~25/minute).
 - **Permissions:** runs only on `*.youtube.com`; fetches from `api.discogs.com`;
-  uses local `storage` for width and collapsed state.
+  uses local `storage` for the panel width, collapsed state, and recent artists.
 - **Privacy:** nothing is collected or sent to the developer. See [PRIVACY.md](PRIVACY.md).
 
 ## Development
