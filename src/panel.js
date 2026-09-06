@@ -190,6 +190,7 @@
     const ctx = /** @type {Ctx} */ ({ els, cfg, runYouTubeSearch, stopResultFocus });
     ctx.chrome = YTSP.createPanelChrome(ctx);
     ctx.typeahead = YTSP.createTypeahead(ctx);
+    ctx.history = YTSP.createHistory(ctx);
     ctx.releases = YTSP.createReleases(ctx);
     ctx.filters = YTSP.createFilters(ctx);
     ctx.subfilters = YTSP.createSubfilters(ctx);

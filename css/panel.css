@@ -233,6 +233,63 @@ html[dark] {
       background: var(--yt-panel-hover-2);
     }
   }
+
+  /* Recent-artists mode (typeahead.js): a caption above the entries. A
+     pseudo-element, so it stays out of the listbox's option set. */
+  .yt-search-panel-results.ytsp-history-mode::before {
+    content: "Recent";
+    display: block;
+    padding: 4px 14px 6px;
+    color: var(--yt-panel-text-2);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Recent entry: artist name, remove button pinned right. */
+  .yt-search-panel-history {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 6px;
+  }
+
+  .yt-search-panel-history-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .yt-search-panel-history-remove {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--yt-panel-text-2);
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--yt-panel-hover);
+      color: var(--yt-panel-text);
+    }
+  }
+
+  /* Clear-all is an option like the rest, so arrows and Enter reach it. */
+  .yt-search-panel-clear {
+    margin-top: 4px;
+    border-top: 1px solid var(--yt-panel-border);
+    padding-top: 8px;
+    color: var(--yt-panel-text-2);
+    font-size: 12px;
+  }
 }
 
 @keyframes yt-search-panel-spin {

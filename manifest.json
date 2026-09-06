@@ -19,6 +19,7 @@
         "src/paging.js",
         "src/release-row.js",
         "src/typeahead.js",
+        "src/history.js",
         "src/filters.js",
         "src/subfilters.js",
         "src/song-filter.js",

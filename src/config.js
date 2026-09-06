@@ -22,6 +22,9 @@
     // Persisted-state keys (chrome.storage.local).
     STORE_WIDTH: "ytspWidth",
     STORE_COLLAPSED: "ytspCollapsed",
+    STORE_HISTORY: "ytspHistory",
+    // Recently opened artists, offered when the artist box is empty (history.js).
+    HISTORY_MAX: 10,
     RELEASES_PER_PAGE: 100, // Discogs API max per page
     // Auto-page until at least this many rows match the active filter, so rows
     // that only appear on later pages still fill in.
@@ -63,6 +66,8 @@
  * @property {number} PANEL_MIN_KEEP
  * @property {string} STORE_WIDTH
  * @property {string} STORE_COLLAPSED
+ * @property {string} STORE_HISTORY
+ * @property {number} HISTORY_MAX
  * @property {number} RELEASES_PER_PAGE
  * @property {number} RELEASES_FILL_MIN
  * @property {string} DISCOGS_SEARCH
@@ -111,6 +116,7 @@
  * @property {() => void} stopResultFocus
  * @property {ReturnType<typeof YTSP.createPanelChrome>} chrome
  * @property {ReturnType<typeof YTSP.createTypeahead>} typeahead
+ * @property {ReturnType<typeof YTSP.createHistory>} history
  * @property {ReturnType<typeof YTSP.createReleases>} releases
  * @property {ReturnType<typeof YTSP.createFilters>} filters
  * @property {ReturnType<typeof YTSP.createSubfilters>} subfilters
