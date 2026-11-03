@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+    # Gives "build(deps-dev): …", a Conventional Commit that scripts/changelog.js reads.
+    commit-message:
+      prefix: build
+      include: scope
