@@ -27,7 +27,7 @@ Shipping is **manual**: upload the built `dist/eingang-<version>.zip` at the
 [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole) and submit for review.
 
 - **Run/reload:** load unpacked from the repo root (folder with `manifest.json`) at `chrome://extensions` (Developer mode on). After editing any file — JS *or* CSS — reload (↻) the extension card, then reload the YouTube tab.
-- **Tests:** `test/e2e.js` is the only test: one script that launches headless Chrome with the unpacked extension and walks the whole panel journey, accumulating `check()` assertions (no framework, no per-test filter — edit the `run()` sequence to narrow it). Needs a real browser (`CHROME_BIN`, or `npx playwright install chromium`) and hits **live YouTube + Discogs**, so it's rate-limited (~25 req/min) and occasionally flaky.
+- **Tests:** `test/e2e.js` is the only test: one script that launches headless Chrome with the unpacked extension and walks the whole panel journey, accumulating `check()` assertions (no framework, no per-test filter — edit the `run()` sequence to narrow it). Needs a real browser (`CHROME_BIN`, or `npx playwright-core install chromium`) and hits **live YouTube + Discogs**, so it's rate-limited (~25 req/min) and occasionally flaky.
 
 ### Releasing
 

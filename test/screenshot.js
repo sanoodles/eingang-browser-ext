@@ -81,7 +81,7 @@ async function launchChrome(bin) {
 (async () => {
   const bin = findChrome();
   if (!bin) {
-    console.error("No Chrome found. Set CHROME_BIN, or run: npx playwright install chromium");
+    console.error("No Chrome found. Set CHROME_BIN, or run: npx playwright-core install chromium");
     process.exit(2);
   }
   console.log("chrome:", bin);

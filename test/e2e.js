@@ -17,7 +17,7 @@
 // Run:    npm run test:e2e        (or: node test/e2e.js)
 // Chrome: set CHROME_BIN, or have Playwright's Chromium cached at
 //         ~/.cache/ms-playwright/chromium-<n>/chrome-linux64/chrome
-//         (install with: npx playwright install chromium).
+//         (install with: npx playwright-core install chromium).
 
 const { chromium } = require("playwright-core");
 const { spawn } = require("child_process");
@@ -561,7 +561,7 @@ async function run(page) {
 (async () => {
   const bin = findChrome();
   if (!bin) {
-    console.error("No Chrome found. Set CHROME_BIN, or run: npx playwright install chromium");
+    console.error("No Chrome found. Set CHROME_BIN, or run: npx playwright-core install chromium");
     process.exit(2);
   }
   console.log("chrome:", bin);
