@@ -15,8 +15,8 @@
 // runs spaced out. Asserts accumulate; the process exits non-zero on any fail.
 //
 // Run:    npm run test:e2e        (or: node test/e2e.js)
-// Chrome: set CHROME_BIN, or have Playwright's Chromium cached at
-//         ~/.cache/ms-playwright/chromium-<n>/chrome-linux64/chrome
+// Chrome: CHROME_BIN if set, else Brave or Chromium on PATH, else Playwright's
+//         Chromium at ~/.cache/ms-playwright/chromium-<n>/chrome-linux64/chrome
 //         (install with: npx playwright-core install chromium).
 
 const { chromium } = require("playwright-core");
@@ -141,8 +141,26 @@ function expectWidth(innerWidth, px) {
   return Math.min(max, Math.max(280, Math.round(px)));
 }
 
+// The package manager keeps a system browser patched, while Playwright's build moves only
+// with a Playwright release. Google Chrome is left out: its branded builds ignore
+// --load-extension.
+const SYSTEM_BROWSERS = ["brave-browser", "chromium", "chromium-browser"];
+
+function onPath(name) {
+  for (const dir of (process.env.PATH || "").split(path.delimiter)) {
+    const bin = path.join(dir, name);
+    try {
+      fs.accessSync(bin, fs.constants.X_OK);
+      return bin;
+    } catch {}
+  }
+  return null;
+}
+
 function findChrome() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
+  const system = SYSTEM_BROWSERS.map(onPath).find(Boolean);
+  if (system) return system;
   const base = path.join(os.homedir(), ".cache/ms-playwright");
   let best = null;
   let bestVer = -1;
@@ -540,7 +558,7 @@ async function run(page) {
 (async () => {
   const bin = findChrome();
   if (!bin) {
-    console.error("No Chrome found. Set CHROME_BIN, or run: npx playwright-core install chromium");
+    console.error("No browser found. Install Brave or Chromium, set CHROME_BIN, or run: npx playwright-core install chromium");
     process.exit(2);
   }
   console.log("chrome:", bin);

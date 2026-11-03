@@ -2,8 +2,8 @@
 // search an artist, click a release, then shoot once YouTube's results and the
 // panel's "Other artists" have filled. Reuses the e2e launch approach.
 // Output: dist/screenshot-1280x800.png.
-// Run: node test/screenshot.js  (needs CHROME_BIN or a cached Playwright Chromium;
-// hits live YouTube + Discogs, like the e2e test).
+// Run: node test/screenshot.js  (finds a browser as the e2e test does; hits live
+// YouTube + Discogs, like the e2e test).
 const { chromium } = require("playwright-core");
 const fs = require("fs");
 const os = require("os");
@@ -14,8 +14,26 @@ const OUT = path.join(EXT, "dist", "screenshot-1280x800.png");
 const PROFILE = fs.mkdtempSync(path.join(os.tmpdir(), "yt-shot-"));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// The package manager keeps a system browser patched, while Playwright's build moves only
+// with a Playwright release. Google Chrome is left out: its branded builds ignore
+// --load-extension.
+const SYSTEM_BROWSERS = ["brave-browser", "chromium", "chromium-browser"];
+
+function onPath(name) {
+  for (const dir of (process.env.PATH || "").split(path.delimiter)) {
+    const bin = path.join(dir, name);
+    try {
+      fs.accessSync(bin, fs.constants.X_OK);
+      return bin;
+    } catch (e) {}
+  }
+  return null;
+}
+
 function findChrome() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
+  const system = SYSTEM_BROWSERS.map(onPath).find(Boolean);
+  if (system) return system;
   const base = path.join(os.homedir(), ".cache/ms-playwright");
   let best = null;
   let bestVer = -1;
@@ -48,7 +66,7 @@ function launchChrome(bin) {
 (async () => {
   const bin = findChrome();
   if (!bin) {
-    console.error("No Chrome found. Set CHROME_BIN, or run: npx playwright-core install chromium");
+    console.error("No browser found. Install Brave or Chromium, set CHROME_BIN, or run: npx playwright-core install chromium");
     process.exit(2);
   }
   console.log("chrome:", bin);
