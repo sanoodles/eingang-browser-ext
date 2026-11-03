@@ -55,7 +55,6 @@ async function launchChrome(bin) {
       "--load-extension=" + EXT,
       "--no-first-run",
       "--no-default-browser-check",
-      "--no-sandbox",
       "--disable-gpu",
       "about:blank",
     ],
