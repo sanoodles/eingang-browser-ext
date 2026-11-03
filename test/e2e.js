@@ -20,15 +20,12 @@
 //         (install with: npx playwright-core install chromium).
 
 const { chromium } = require("playwright-core");
-const { spawn } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
 const EXT = path.resolve(__dirname, "..");
-const PORT = Number(process.env.CDP_PORT || 9222);
 const PROFILE = fs.mkdtempSync(path.join(os.tmpdir(), "yt-e2e-"));
-const CDP = "http://127.0.0.1:" + PORT;
 
 let passed = 0;
 let failed = 0;
@@ -163,33 +160,16 @@ function findChrome() {
   return best;
 }
 
-async function launchChrome(bin) {
-  const proc = spawn(
-    bin,
-    [
-      "--headless=new",
-      "--remote-debugging-port=" + PORT,
-      "--user-data-dir=" + PROFILE,
-      "--disable-extensions-except=" + EXT,
-      "--load-extension=" + EXT,
-      "--no-first-run",
-      "--no-default-browser-check",
-      "--disable-gpu",
-      "about:blank",
-    ],
-    { stdio: "ignore" }
-  );
-  const deadline = Date.now() + 30000;
-  while (Date.now() < deadline) {
-    if (await waitOk(() => fetch(CDP + "/json/version").then((r) => {
-      if (!r.ok) throw new Error("not ok");
-    }))) {
-      return proc;
-    }
-    await sleep(500);
-  }
-  proc.kill("SIGKILL");
-  throw new Error("Chrome CDP did not come up on " + CDP);
+// Playwright talks to Chrome over a pipe, so no DevTools port is open to other
+// local processes.
+function launchChrome(bin) {
+  return chromium.launchPersistentContext(PROFILE, {
+    executablePath: bin,
+    headless: true,
+    chromiumSandbox: true,
+    viewport: null,
+    args: ["--disable-extensions-except=" + EXT, "--load-extension=" + EXT, "--disable-gpu"],
+  });
 }
 
 // Scroll the list to the bottom to drive auto-paging until `ready(state)` holds
@@ -564,10 +544,8 @@ async function run(page) {
     process.exit(2);
   }
   console.log("chrome:", bin);
-  const proc = await launchChrome(bin);
-  const browser = await chromium.connectOverCDP(CDP);
+  const context = await launchChrome(bin);
   try {
-    const context = browser.contexts()[0];
     await context.addCookies([
       { name: "CONSENT", value: "YES+1", domain: ".youtube.com", path: "/" },
       { name: "SOCS", value: "CAI", domain: ".youtube.com", path: "/" },
@@ -576,17 +554,8 @@ async function run(page) {
     await page.setViewportSize({ width: 1280, height: 900 });
     await run(page);
   } finally {
-    await browser.close().catch(() => {});
-    // Wait for Chrome to actually exit before removing its profile, else it's
-    // still holding files and rmSync leaves the temp dir behind.
-    await new Promise((res) => {
-      proc.once("exit", res);
-      proc.kill("SIGTERM");
-      setTimeout(() => {
-        proc.kill("SIGKILL");
-        res();
-      }, 3000);
-    });
+    // close() waits for Chrome to exit, so Chrome no longer holds the profile.
+    await context.close().catch(() => {});
     try {
       fs.rmSync(PROFILE, { recursive: true, force: true });
     } catch {}
